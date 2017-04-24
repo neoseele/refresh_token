@@ -43,26 +43,37 @@ function reload() {
   // console.log('# of visible Links:' + visibleLinks.length);
 
   for (var i = 0; i < visibleLinks.length; ++i) {
+    // this is the pantheon link with the new token
     var link = visibleLinks[i];
-    var match = link.match(/(.*)token=.*/);
-    var link_prefix = match[1];
-    // console.log(link_prefix);
+    var match = link.match(/.*\?project=(.*)\&token=(.*)/);
+    var project = match[1];
+    var new_token = match[2];
+    // console.log(project);
+    // console.log(new_token);
 
     if (document.getElementById('check' + i).checked) {
-      chrome.tabs.query({url: link_prefix+'*', currentWindow: true},
-                        function (arrayOfTabs) {
-        if (arrayOfTabs.length == 0) {
+      chrome.tabs.query({url: 'https://pantheon.corp.google.com/*', currentWindow: true},
+                        function (tabs) {
+        if (tabs.length == 0) {
           // console.log('visible link:' + link);
           chrome.tabs.create({url: link}, function(id) {});
 
         } else {
-          // console.log(arrayOfTabs.length);
-          for (var j = 0; j < arrayOfTabs.length; ++j) {
-            // console.log('tab id:' + arrayOfTabs[j].id);
-            // console.log('tab url:' + arrayOfTabs[j].url);
+          // console.log(tabs.length);
 
-            chrome.tabs.update(arrayOfTabs[j].id, {url: link});
-            // chrome.tabs.reload(arrayOfTabs[j].id);
+          for (var j = 0; j < tabs.length; ++j) {
+            var current_url = tabs[j].url
+            // console.log('current url:' + current_url);
+
+            var res = current_url.match(/(.*)\?project=(.*)\&token=(.*)/);
+
+            if (res && (res[2] == project)) {
+              var renewed_url = res[1] + '?project=' + project + '&token=' + new_token;
+              // console.log('new url:' + renewed_url);
+
+              chrome.tabs.update(tabs[j].id, {url: renewed_url});
+              // chrome.tabs.reload(tabs[j].id);
+            }
           }
         }
       });

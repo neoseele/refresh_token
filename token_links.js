@@ -18,7 +18,8 @@ links = links.map(function(element) {
   return href;
 });
 
-var re = /http.*view\?token=.*/i;
+// var re = /http.*view\?token=.*/i;
+var re = /https.*\?project=.*\&token=.*/i;
 
 for (var i = 0; i < links.length;) {
   if (re.test(links[i]) == false) {
