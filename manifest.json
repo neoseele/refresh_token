@@ -1,11 +1,11 @@
 {
-  "name": "refresh_token",
-  "description": "Nil's first chrome extension",
-  "version": "0.1",
+  "name": "Token Refresher",
+  "description": "Reload tabs with refreshed token",
+  "version": "0.2",
   "minimum_chrome_version": "16.0.884",
   "permissions": [
     "tabs",
-    "downloads",
+    "storage",
     "<all_urls>"
   ],
   "browser_action": {
@@ -16,5 +16,6 @@
       "background.js"
     ]
   },
+  "options_page": "options.html",
   "manifest_version": 2
 }

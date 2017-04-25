@@ -2,8 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-var site = 'https://pantheon.corp.google.com/';
-// var site = 'http://localhost:4567/';
+var default_site = 'https://pantheon.corp.google.com/';
+// var default_site = 'http://localhost:4567/';
+var site = null;
 var re = /(.*)\?project=(.*)\&token=(.*)/i
 
 function refresh(token_link) {
@@ -41,15 +42,25 @@ function refresh(token_link) {
 
 // captured the token link from the source page, assign it to a local variable
 chrome.extension.onRequest.addListener(function(link) {
+  alert('site:'+site);
   refresh(link);
 });
 
 chrome.browserAction.onClicked.addListener(function (tab) { //Fired when User Clicks ICON
-  // Inspect whether the place where user clicked matches with our site
-  if (tab.url.indexOf(site) != -1) {
-    chrome.tabs.executeScript(tab.id, {
-        file: "token_link.js",
-        allFrames: true,
-    });
-  }
+  // get the stored site from storage
+  chrome.storage.sync.get({
+    site: default_site, // if no site parameter stored, use the default one
+  }, function(stored) {
+    site = stored.site;
+
+    // Inspect whether the place where user clicked matches with our site
+    if (tab.url.indexOf(site) != -1) {
+      chrome.tabs.executeScript(tab.id, {
+          file: "token_link.js",
+          allFrames: true,
+      });
+    } else {
+      alert('This extension only works on:'+site);
+    }
+  });
 });
