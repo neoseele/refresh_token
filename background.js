@@ -61,7 +61,7 @@ chrome.browserAction.onClicked.addListener(function (tab) { //Fired when User Cl
           allFrames: true,
       });
     } else {
-      alert('The active tab MUST be: '+ga_site);
+      alert("Current tab's URL must be "+ga_site);
     }
   });
 });
