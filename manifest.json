@@ -6,6 +6,8 @@
   "permissions": [
     "tabs",
     "storage",
+    "alarms",
+    "notifications",
     "<all_urls>"
   ],
   "browser_action": {
@@ -16,6 +18,22 @@
       "background.js"
     ]
   },
+  "web_accessible_resources": [
+    "test.html"
+  ],
+  "content_scripts": [
+    {
+      "run_at": "document_end",
+      "matches": [
+        "https://google-admin.corp.google.com/*",
+        "http://localhost:4567/*"
+      ],
+      "js": [
+        "token_link.js",
+        "alarms.js"
+      ]
+    }
+  ],
   "options_page": "options.html",
   "manifest_version": 2
 }

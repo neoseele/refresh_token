@@ -13,7 +13,7 @@ links = links.map(function(element) {
 for (var i = 0; i < links.length; ++i) {
   var link = links[i];
   if (link.search(/.*\?project=.*\&token=.*/) != -1) {
-    chrome.extension.sendRequest(link);
+    chrome.extension.sendRequest({action: 'refresh', link: link});
     break;
   }
 }
