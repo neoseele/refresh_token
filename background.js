@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+var ga_site = 'https://google-admin.corp.google.com';
 var default_site = 'https://pantheon.corp.google.com/';
 // var default_site = 'http://localhost:4567/';
 var site = null;
@@ -42,7 +43,7 @@ function refresh(token_link) {
 
 // captured the token link from the source page, assign it to a local variable
 chrome.extension.onRequest.addListener(function(link) {
-  alert('site:'+site);
+  // alert('site:'+site);
   refresh(link);
 });
 
@@ -54,13 +55,13 @@ chrome.browserAction.onClicked.addListener(function (tab) { //Fired when User Cl
     site = stored.site;
 
     // Inspect whether the place where user clicked matches with our site
-    if (tab.url.indexOf(site) != -1) {
+    if (tab.url.indexOf(ga_site) != -1) {
       chrome.tabs.executeScript(tab.id, {
           file: "token_link.js",
           allFrames: true,
       });
     } else {
-      alert('This extension only works on:'+site);
+      alert('The active tab MUST be: '+ga_site);
     }
   });
 });
