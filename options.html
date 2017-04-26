@@ -1,16 +1,26 @@
 <!DOCTYPE html>
 <html>
-  <head><title>Extension Options</title></head>
-  <body>
+<head><title>Extension Options</title></head>
+<body>
 
-Site:
-  <select id="site">
-    <option value="https://pantheon.corp.google.com/">https://pantheon.corp.google.com/</option>
-    <option value="http://localhost:4567/">http://localhost:4567/</option>
-  </select>
-  <button id="save">Save</button>
-  <div id="status"></div>
+<p>Pantheon Site:</p>
+<p>
+<select id="pantheon_site">
+  <option value="https://pantheon.corp.google.com/">https://pantheon.corp.google.com/</option>
+  <option value="http://localhost:4567/">http://localhost:4567/</option>
+</select>
+</p>
 
-  <script src="options.js"></script>
-  </body>
+<p>GA Site:</p>
+<p>
+<select id="ga_site">
+  <option value="https://google-admin.corp.google.com/">https://google-admin.corp.google.com/</option>
+  <option value="http://localhost:4567/">http://localhost:4567/</option>
+</select>
+<p>
+<p><button id="save">Save</button></p>
+<div id="status"></div>
+
+<script src="options.js"></script>
+</body>
 </html>

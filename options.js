@@ -1,8 +1,10 @@
 // Saves options to chrome.storage
 function save_options() {
-  var url = document.getElementById('site').value;
+  var pantheon_site = document.getElementById('pantheon_site').value;
+  var ga_site = document.getElementById('ga_site').value;
   chrome.storage.sync.set({
-    site: url,
+    pantheon_site: pantheon_site,
+    ga_site: ga_site,
   }, function() {
     // Update status to let user know options were saved.
     var status = document.getElementById('status');
@@ -18,9 +20,11 @@ function save_options() {
 function restore_options() {
   // Use default value for site
   chrome.storage.sync.get({
-    site: 'https://pantheon.corp.google.com/',
+    pantheon_site: 'https://pantheon.corp.google.com/',
+    ga_site: 'https://google-admin.corp.google.com/',
   }, function(items) {
-    document.getElementById('site').value = items.site;
+    document.getElementById('pantheon_site').value = items.pantheon_site;
+    document.getElementById('ga_site').value = items.ga_site;
   });
 }
 document.addEventListener('DOMContentLoaded', restore_options);
