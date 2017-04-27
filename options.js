@@ -20,8 +20,8 @@ function save_options() {
 function restore_options() {
   // Use default value for site
   chrome.storage.sync.get({
-    pantheon_site,
-    ga_site,
+    pantheon_site: 'https://pantheon.corp.google.com/',
+    ga_site: 'https://google-admin.corp.google.com',
   }, function(items) {
     document.getElementById('pantheon_site').value = items.pantheon_site;
     document.getElementById('ga_site').value = items.ga_site;

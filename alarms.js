@@ -15,6 +15,7 @@ function getTokenLink() {
 
 function getAlarmName() {
   var token_link = getTokenLink();
+  alert(token_link);
   var match = token_link.match(/.*\?project=(.*)\&token=.*/i);
   return match[1]; // use project id as alarm name
 }
@@ -48,11 +49,27 @@ function doToggleAlarm() {
   });
 }
 
-var button = document.createElement('button');
-button.id = 'toggleAlarm';
-button.innerText = 'Activate alarm';
-var p = document.createElement('p');
-p.appendChild(button);
-document.body.appendChild(p);
-document.getElementById('toggleAlarm').onclick = doToggleAlarm;
-// };
+// var button = document.createElement('button');
+// button.id = 'toggleAlarm';
+// button.innerText = 'Activate alarm';
+// var p = document.createElement('p');
+// p.appendChild(button);
+// document.getElementById('accountoverview_123_holder').appendChild(p);
+// document.getElementById('toggleAlarm').onclick = doToggleAlarm;
+
+$('#accountoverview_123').on('click', 'a', function() {
+  // create the button
+  var button = document.createElement('button');
+  button.id = 'toggleAlarm';
+  button.innerText = 'Activate alarm';
+  // create the p
+  var p = document.createElement('p');
+  p.appendChild(button);
+  document.getElementById('accountoverview_123').appendChild(p);
+
+  $('#toggleAlarm').on('click', function(){
+    doToggleAlarm();
+  });
+
+  $('#toggleAlarm').trigger('click');
+});

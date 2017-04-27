@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 var re = /(.*)\?project=(.*)\&token=(.*)/i
+var count = 30;
 
 function refresh(token_link) {
   // alert(token_link);
@@ -60,12 +61,12 @@ chrome.extension.onRequest.addListener(function(req) {
     });
   } else if (req['action'] == 'clear_alarm') {
     chrome.alarms.clear(req['alarm_name']);
+    count = 30;
   } else {
     refresh(req['link']);
   }
 });
 
-var count = 30;
 chrome.alarms.onAlarm.addListener(function(alarm) {
   count -= 1;
   alert('Got an alarm! ' + count);
