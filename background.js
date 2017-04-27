@@ -2,12 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// var pantheon_site = 'https://pantheon.corp.google.com/';
-// var ga_site = 'https://google-admin.corp.google.com';
+var pantheon_site = 'https://pantheon.corp.google.com/';
+var ga_site = 'https://google-admin.corp.google.com';
 
-var pantheon_site = 'http://localhost:4567/';
-var ga_site = 'http://localhost:4567/';
-
+// var pantheon_site = 'http://localhost:4567/';
+// var ga_site = 'http://localhost:4567/';
 
 var re = /(.*)\?project=(.*)\&token=(.*)/i
 
