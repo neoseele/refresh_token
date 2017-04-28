@@ -6,69 +6,92 @@ function getTokenLink() {
   });
 
   for (var i = 0; i < links.length; ++i) {
-    var link = links[i];
+    const link = links[i];
     if (link.search(/.*\?project=.*\&token=.*/) != -1) {
       return link;
     }
   }
 }
 
-function getAlarmName() {
-  var token_link = getTokenLink();
-  alert(token_link);
-  var match = token_link.match(/.*\?project=(.*)\&token=.*/i);
-  return match[1]; // use project id as alarm name
+function getTokenDetails() {
+  const tokenLink = getTokenLink();
+  const match = tokenLink.match(/.*\?project=(.*)\&token=(.*)/i);
+  if (match) {
+    // console.log('matched');
+    return {
+      'ga_link': window.location.href,
+      'token_link': tokenLink,
+      'project_id': match[1],
+      'token': match[2],
+      'time': Date.now()
+    }
+  }
 }
 
-function checkAlarm(callback) {
-  var current_label = document.getElementById('toggleAlarm').innerText;
-  // alert('current_label:' + current_label);
+function checkAlarm(alarm, callback) {
+  const currentLabel = document.getElementById('toggleAlarm').innerText;
+  // alert('currentLabel:' + currentLabel);
 
-  var hasAlarm = (current_label != 'Activate alarm');
-  if (callback) callback(hasAlarm);
+  const hasAlarm = (currentLabel != 'Activate alarm');
+  if (callback) callback(alarm, hasAlarm);
 }
 
-function createAlarm() {
-  chrome.extension.sendRequest({action: 'create_alarm', alarm_name: getAlarmName()});
+function createAlarm(alarm) {
+  chrome.extension.sendRequest({
+    action: 'create_alarm',
+    alarm: alarm
+  });
   document.getElementById('toggleAlarm').innerText = 'Cancel alarm';
 }
 
-function clearAlarm() {
-  chrome.extension.sendRequest({action: 'clear_alarm', alarm_name: getAlarmName()});
+function clearAlarm(alarm) {
+  chrome.extension.sendRequest({
+    action: 'clear_alarm',
+    alarm: alarm
+  });
   document.getElementById('toggleAlarm').innerText = 'Activate alarm';
 }
 
-function doToggleAlarm() {
-  checkAlarm(function(hasAlarm) {
-    if (hasAlarm) {
-     clearAlarm();
-    } else {
-     createAlarm();
-    }
-    checkAlarm();
+function viewAlarms() {
+  chrome.extension.sendRequest({
+    action: 'view_alarms',
   });
 }
 
-// var button = document.createElement('button');
-// button.id = 'toggleAlarm';
-// button.innerText = 'Activate alarm';
-// var p = document.createElement('p');
-// p.appendChild(button);
-// document.getElementById('accountoverview_123_holder').appendChild(p);
-// document.getElementById('toggleAlarm').onclick = doToggleAlarm;
+function toggleAlarm(alarm) {
+  checkAlarm(alarm, function(alarm, hasAlarm) {
+    if (hasAlarm) {
+     clearAlarm(alarm);
+    } else {
+     createAlarm(alarm);
+    }
+  });
+}
 
 $('#accountoverview_123').on('click', 'a', function() {
-  // create the button
-  var button = document.createElement('button');
+  // create buttons
+  const button = document.createElement('button');
   button.id = 'toggleAlarm';
   button.innerText = 'Activate alarm';
+
+  const button1 = document.createElement('button');
+  button1.id = 'viewAlarms';
+  button1.innerText = 'View alarms';
+
   // create the p
-  var p = document.createElement('p');
+  const p = document.createElement('p');
   p.appendChild(button);
+  p.appendChild(button1);
+
   document.getElementById('accountoverview_123').appendChild(p);
 
   $('#toggleAlarm').on('click', function(){
-    doToggleAlarm();
+    const tokenDetails = getTokenDetails();
+    toggleAlarm(tokenDetails);
+  });
+
+  $('#viewAlarms').on('click', function(){
+    viewAlarms();
   });
 
   $('#toggleAlarm').trigger('click');
