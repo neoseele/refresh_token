@@ -51,6 +51,16 @@ function refresh(token_link) {
   }
 }
 
+function clearAlarm(alarmName) {
+  chrome.alarms.get(alarmName, function(alarm) {
+    chrome.alarms.clear(alarm.name);
+  });
+
+  chrome.storage.local.get(alarmName, function() {
+    chrome.storage.local.remove(alarmName);
+  });
+}
+
 function viewLocalStorage() {
   chrome.storage.local.get(null, function(items) {
     // var allKeys = Object.keys(items);
@@ -65,13 +75,13 @@ chrome.extension.onRequest.addListener(function(req) {
   if (req.action == 'create_alarm') {
 
     const details = req.alarm;
-    const alarm_name = details.project_id;
+    const alarmName = details.project_id;
 
     chrome.storage.local.set({
-      [alarm_name]: details // will evaluate alarm_name as property name
+      [alarmName]: details // will evaluate alarmName as property name
     }, function() {
-      chrome.alarms.create(alarm_name, {
-        delayInMinutes: 0.1, periodInMinutes: 0.1
+      chrome.alarms.create(alarmName, {
+        delayInMinutes: 0.1, periodInMinutes: 1
       });
     });
 
@@ -81,15 +91,9 @@ chrome.extension.onRequest.addListener(function(req) {
 
 
     const details = req.alarm;
-    const alarm_name = details.project_id;
+    const alarmName = details.project_id;
 
-    chrome.alarms.get(alarm_name, function(alarm) {
-      chrome.alarms.clear(alarm.name);
-    });
-
-    chrome.storage.local.get(alarm_name, function(result) {
-      chrome.storage.local.remove(alarm_name);
-    });
+    clearAlarm(alarmName);
 
     count = 10; // reset counter
 
@@ -118,27 +122,27 @@ chrome.extension.onRequest.addListener(function(req) {
 chrome.alarms.onAlarm.addListener(function(alarm) {
   count -= 1;
   console.log("Got an alarm!", alarm);
-  if (count <= 5) {
-    alert('Token for project [' + alarm.name + '] is about to expired.');
-    chrome.alarms.clear(alarm.name);
-  }
+  // if (count <= 5) {
+  //   alert('Token for project [' + alarm.name + '] is about to expired.');
+  //   clearAlarm(alarm.name);
+  // }
 });
 
-chrome.browserAction.onClicked.addListener(function(tab) { //Fired when User Clicks ICON
-  // get the stored pantheon_site from storage
-  chrome.storage.sync.get({
-    ga_site: 'https://google-admin.corp.google.com',
-  }, function(stored) {
-
-    ga_site = stored.ga_site;
-    // Inspect whether the place where user clicked matches with our site
-    if (tab.url.indexOf(ga_site) != -1) {
-      chrome.tabs.executeScript(tab.id, {
-          file: "token_link.js",
-          allFrames: true,
-      });
-    } else {
-      alert("Current tab's URL must be "+ga_site);
-    }
-  });
-});
+// chrome.browserAction.onClicked.addListener(function(tab) { //Fired when User Clicks ICON
+//   // get the stored pantheon_site from storage
+//   chrome.storage.sync.get({
+//     ga_site: 'https://google-admin.corp.google.com',
+//   }, function(stored) {
+//
+//     ga_site = stored.ga_site;
+//     // Inspect whether the place where user clicked matches with our site
+//     if (tab.url.indexOf(ga_site) != -1) {
+//       chrome.tabs.executeScript(tab.id, {
+//           file: "token_link.js",
+//           allFrames: true,
+//       });
+//     } else {
+//       alert("Current tab's URL must be "+ga_site);
+//     }
+//   });
+// });
