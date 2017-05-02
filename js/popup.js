@@ -15,7 +15,7 @@ function showAlarms() {
     alarmsTable.removeChild(alarmsTable.children[alarmsTable.children.length - 1])
   }
   for (var i = 0; i < alarms.length; ++i) {
-    var a = alarms[i];
+    var alarm = alarms[i];
 
     var row = document.createElement('tr');
 
@@ -29,36 +29,41 @@ function showAlarms() {
     checkbox.type = 'checkbox';
     checkbox.id = 'check' + i;
 
-    var button = document.createElement('button');
-    button.id = 'button' + i;
-    button.innerHTML = 'button' + i;
-
-    var now = Date.now();
-
-    if ((now - a.time) > 60000) {
-      button.disabled = false;
-      button.onclick = function() {
-        // alert('button'+i);
-        chrome.tabs.query({url: a.ga_link, currentWindow: true}, function (tabs) {
-          // should be only one of these found
-          if (tabs.length > 0) {
-            const tab = tabs[0];
-            chrome.tabs.update(tab.id, {active: true});
-          }
-        });
-      }
-    } else {
-      button.disabled = true;
-    }
+    var button0 = document.createElement('button');
+    button0.id = 'button' + i;
 
     col0.appendChild(checkbox);
-    col1.innerText = alarms[i].project_id;
+    col1.innerText = alarm.project_id;
     col1.style.whiteSpace = 'nowrap';
     col1.onclick = function() {
       checkbox.checked = !checkbox.checked;
     }
-    col2.innerText = alarms[i].time
-    col3.appendChild(button);
+
+    const secondsLeft = bgPage.secondsLeft(alarm.time);
+    if (secondsLeft > 0) {
+      col2.innerText = bgPage.secondsToDate(secondsLeft);
+
+      button0.innerHTML = 'Refresh Token';
+      button0.onclick = function() {
+        bgPage.refreshToken(alarm.project_id);
+        window.close();
+      }
+
+    } else {
+      col2.innerText = 'expired';
+
+      button0.innerHTML = 'Google Admin';
+      button0.onclick = function() {
+        chrome.tabs.query({url: alarm.ga_link, currentWindow: true}, function (tabs) {
+          // should be only one of these found
+          if (tabs.length > 0) {
+            chrome.tabs.update(tabs[0].id, {active: true});
+          }
+        });
+      }
+    }
+
+    col3.appendChild(button0);
 
     row.appendChild(col0);
     row.appendChild(col1);

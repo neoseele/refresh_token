@@ -3,19 +3,27 @@
 // found in the LICENSE file.
 
 const re = /(.*)\?project=(.*)\&token=(.*)/i
-var count = 10;
 
-function refresh(token_link) {
-  // alert(token_link);
+function secondsLeft(time) {
+  const halfAnHour = 100 * 1000 // in ms
+  const now = Date.now();
+  const seconds = (halfAnHour - (now - time)) / 1000;
+  return Math.round(seconds);
+}
 
-  // proceed if token_link is not null
-  if (token_link) {
-    const match = token_link.match(re);
+function secondsToDate(seconds) {
+  const date = new Date(seconds * 1000).toISOString().substr(11, 8);
+  return date;
+}
 
-    // regexp matched groups start with index 1
-    const project = match[2];
-    const new_token = match[3];
+function refreshToken(project) {
+  // get the alarm detail from storage
+  chrome.storage.local.get(project, function(result) {
+    console.log('result', result);
+    const alarmDetail = result[project];
+    const newToken = alarmDetail.token;
 
+    // get the saved pantheon_site
     chrome.storage.sync.get({
       pantheon_site: 'https://pantheon.corp.google.com/',
     }, function(stored) {
@@ -38,17 +46,15 @@ function refresh(token_link) {
             // * project matched
             // * token not matched
 
-            if ((tab_project == project) && (tab_token != new_token)) {
-              const url = tab_match[1]+'?project='+project+'&token='+new_token;
+            if ((tab_project == project) && (tab_token != alarmDetail.token)) {
+              const url = tab_match[1]+'?project='+project+'&token='+newToken;
               chrome.tabs.update(tab.id, {url: url});
             }
           }
         }
       });
     });
-  } else {
-    alert('No token link found.');
-  }
+  });
 }
 
 function clearAlarm(alarmName) {
@@ -68,7 +74,7 @@ function viewLocalStorage() {
   });
 }
 
-// captured the token link from the source page, assign it to a local variable
+// captured the alarm from the source page and save it in local storage
 chrome.extension.onRequest.addListener(function(req) {
   console.log(req);
 
@@ -81,7 +87,7 @@ chrome.extension.onRequest.addListener(function(req) {
       [alarmName]: details // will evaluate alarmName as property name
     }, function() {
       chrome.alarms.create(alarmName, {
-        delayInMinutes: 0.1, periodInMinutes: 1
+        delayInMinutes: 0.1, periodInMinutes: 0.1
       });
     });
 
@@ -95,8 +101,6 @@ chrome.extension.onRequest.addListener(function(req) {
 
     clearAlarm(alarmName);
 
-    count = 10; // reset counter
-
     viewLocalStorage();
 
   } else if (req.action == 'view_alarms') {
@@ -107,25 +111,14 @@ chrome.extension.onRequest.addListener(function(req) {
 
     viewLocalStorage();
 
-    // clear all alarms
-    // chrome.alarms.getAll(function(alarms) {
-    //   for (var i = 0; i < alarms.length; ++i) {
-    //     chrome.alarms.clear(alarms[i].name);
-    //   }
-    // });
-
   } else {
-    refresh(req['link']);
+    refresh(req.project_id);
   }
 });
 
 chrome.alarms.onAlarm.addListener(function(alarm) {
-  count -= 1;
   console.log("Got an alarm!", alarm);
-  // if (count <= 5) {
-  //   alert('Token for project [' + alarm.name + '] is about to expired.');
-  //   clearAlarm(alarm.name);
-  // }
+  refreshToken(alarm.name);
 });
 
 // chrome.browserAction.onClicked.addListener(function(tab) { //Fired when User Clicks ICON

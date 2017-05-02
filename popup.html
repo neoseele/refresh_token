@@ -1,16 +1,22 @@
 <!DOCTYPE html>
 <head>
-<script src='popup.js'></script>
+  <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" href="css/bootstrap-theme.min.css">
+  <script src='js/popup.js'></script>
 </head>
 <body>
-<button id=clear_all>Clear All</button>
-<table id=alarms>
-  <tr>
-    <th><input type=checkbox checked id=toggle_all></th>
-    <th align=left>project</th>
-    <th align=left>time</th>
-    <th align=left>Actions</th>
-  </tr>
-</table>
+  <table class="table table-hover">
+    <thead class="thead-inverse">
+      <tr>
+        <th><input type="checkbox" checked id="toggle_all"></th>
+        <th align="left">PROJECT</th>
+        <th align="left">TIME_REMAINING</th>
+        <th align="left">ACTIONS</th>
+      </tr>
+    </thead>
+    <tbody id="alarms">
+    </tbody>
+  </table>
+  <button id="clear_all">Clear All</button>
 </body>
 </html>

@@ -1,4 +1,3 @@
-
 function getTokenLink() {
   var links = [].slice.apply(document.getElementsByTagName('a'));
   links = links.map(function(element) {
@@ -42,6 +41,5 @@ function viewAlarms() {
 }
 
 $('#accountoverview_123').on('click', 'a', function() {
-  const tokenDetails = getTokenDetails();
-  createAlarm(tokenDetails);
+  createAlarm(getTokenDetails());
 });

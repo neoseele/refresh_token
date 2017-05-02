@@ -1,7 +1,7 @@
 {
   "name": "Token Refresher",
   "description": "Reload tabs with refreshed token",
-  "version": "0.2",
+  "version": "0.3",
   "minimum_chrome_version": "16.0.884",
   "permissions": [
     "tabs",
@@ -16,11 +16,10 @@
   },
   "background":{
     "scripts":[
-      "background.js"
+      "js/background.js"
     ]
   },
   "web_accessible_resources": [
-    "test.html"
   ],
   "content_scripts": [
     {
@@ -30,8 +29,8 @@
         "http://localhost:4567/*"
       ],
       "js": [
-        "jquery-3.2.1.min.js",
-        "alarms.js"
+        "js/jquery.min.js",
+        "js/alarms.js"
       ]
     }
   ],
