@@ -45,7 +45,7 @@ function showAlarms() {
 
       button0.innerHTML = 'Refresh Token';
       button0.onclick = function() {
-        bgPage.refreshToken(alarm.project_id);
+        bgPage.refreshToken(alarm.project_id, alarm.token);
         window.close();
       }
 
@@ -81,11 +81,11 @@ function toggleAll() {
   }
 }
 
-// Clear all alarms
-function clearAll() {
+// Clear all selected alarms
+function clear() {
   for (var i = 0; i < alarms.length; ++i) {
     if (document.getElementById('check' + i).checked) {
-      bgPage.clearAlarm(alarms[i].project_id);
+      bgPage.clearAlarm(alarms[i]);
     }
   }
   window.close();
@@ -95,7 +95,7 @@ function clearAll() {
 // tab.
 window.onload = function() {
   document.getElementById('toggle_all').onchange = toggleAll;
-  document.getElementById('clear_all').onclick = clearAll;
+  document.getElementById('clear').onclick = clear;
 
   chrome.storage.local.get(null, function(result) {
     alarms = Object.values(result);
