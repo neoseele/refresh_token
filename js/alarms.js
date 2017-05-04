@@ -20,7 +20,7 @@ function getTokenDetails() {
     return {
       'ga_link': window.location.href,
       'token_link': tokenLink,
-      'project_id': match[1],
+      'project': match[1],
       'token': match[2],
       'time': Date.now()
     }
@@ -30,7 +30,7 @@ function getTokenDetails() {
 function createAlarm(alarm) {
   chrome.extension.sendRequest({
     action: 'create_alarm',
-    alarm: alarm
+    payload: alarm
   });
 }
 

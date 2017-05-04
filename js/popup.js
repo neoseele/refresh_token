@@ -33,7 +33,7 @@ function showAlarms() {
     button0.id = 'button' + i;
 
     col0.appendChild(checkbox);
-    col1.innerText = alarm.project_id;
+    col1.innerText = alarm.project;
     col1.style.whiteSpace = 'nowrap';
     col1.onclick = function() {
       checkbox.checked = !checkbox.checked;
@@ -45,7 +45,7 @@ function showAlarms() {
 
       button0.innerHTML = 'Refresh';
       button0.onclick = function() {
-        bgPage.checkToken(alarm.project_id);
+        bgPage.checkToken(alarm.project);
         window.close();
       }
 
@@ -53,14 +53,7 @@ function showAlarms() {
       col2.innerText = 'expired';
 
       button0.innerHTML = 'Google Admin';
-      button0.onclick = function() {
-        chrome.tabs.query({url: alarm.ga_link, currentWindow: true}, function (tabs) {
-          // should be only one of these found
-          if (tabs.length > 0) {
-            chrome.tabs.update(tabs[0].id, {active: true});
-          }
-        });
-      }
+      button0.onclick = bgPage.openGAPage(alarm.project);
     }
 
     col3.appendChild(button0);
@@ -81,7 +74,7 @@ function toggleAll() {
   }
 }
 
-// Clear all selected alarms
+// Clear selected alarms
 function clear() {
   for (var i = 0; i < alarms.length; ++i) {
     if (document.getElementById('check' + i).checked) {
@@ -91,11 +84,18 @@ function clear() {
   window.close();
 }
 
+// Clear all alarms
+function clearAll() {
+  bgPage.clearAllAlarms();
+  window.close();
+}
+
 // Set up event handlers and inject send_links.js into all frames in the active
 // tab.
 window.onload = function() {
   document.getElementById('toggle_all').onchange = toggleAll;
   document.getElementById('clear').onclick = clear;
+  document.getElementById('clear_all').onclick = clearAll;
 
   chrome.storage.local.get(null, function(result) {
     alarms = Object.values(result);

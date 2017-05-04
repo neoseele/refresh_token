@@ -20,6 +20,7 @@
     ]
   },
   "web_accessible_resources": [
+    "image/notice.png"
   ],
   "content_scripts": [
     {

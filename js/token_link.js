@@ -15,8 +15,8 @@ for (var i = 0; i < links.length; ++i) {
   if (match) {
     chrome.extension.sendRequest({
       action: 'check_token',
-      result: {
-        'project_id': match[1],
+      payload: {
+        'project': match[1],
         'token': match[2]
       }
     });

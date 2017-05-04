@@ -2,13 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-const re = /(.*)\?project=(.*)\&token=([0-9a-zA-Z\-\_]+).*/i
+const re = /(.*)\?project=(.*)\&token=(.*)/i
 // const halfAnHour = 1800 * 1000 // in ms
-const halfAnHour = 1800 * 1000 // in ms
+const halfAnHour = 1800 // in seconds
 
 function secondsLeft(time) {
   const now = Date.now();
-  const seconds = (halfAnHour - (now - time)) / 1000;
+  const seconds = halfAnHour - ((now - time) / 1000);
   return Math.round(seconds);
 }
 
@@ -17,12 +17,89 @@ function secondsToDate(seconds) {
   return date;
 }
 
+function findGATab(project, callback) {
+  chrome.storage.sync.get({
+    ga_site: 'https://google-admin.corp.google.com',
+  }, function(stored) {
+    const ga_site = stored.ga_site;
+
+    chrome.tabs.query({url: ga_site+'*'+project+'*', currentWindow: true}, function (tabs) {
+      // should be only one of these found
+      if ((tabs.length > 0) && (typeof callback === 'function')) {
+        console.log('tab', tabs[0]);
+        callback(tabs[0]);
+      }
+    });
+  });
+}
+
+function checkToken(project) {
+  findGATab(project, function(tab) {
+    chrome.tabs.executeScript(tab.id, {
+        file: "js/token_link.js",
+        allFrames: true,
+    });
+  });
+}
+
+function createAlarm(payload) {
+  const name = payload.project;
+
+  // save alarm to local storage
+  chrome.storage.local.set({
+    [name]: payload // [] is used so name like 'nmiu-play' can be evaluated as property
+  }, function() {
+    // start the alarm
+    chrome.alarms.create(name, {
+      delayInMinutes: 0.1, periodInMinutes: 0.2
+    });
+  });
+}
+
+function clearAlarm(name) {
+  chrome.alarms.get(name, function() {
+    chrome.alarms.clear(name);
+  });
+
+  chrome.storage.local.get(name, function() {
+    chrome.storage.local.remove(name);
+  });
+}
+
+function clearAllAlarms() {
+  chrome.alarms.getAll(function(alarms) {
+    console.log('alarms', alarms);
+    alarms.forEach(function(alarm, index) {
+      clearAlarm(alarm.name);
+    });
+  });
+}
+
+function listAlarms() {
+  chrome.alarms.getAll(function(alarms) {
+    console.log('existing alarms', alarms);
+  });
+}
+
+function viewLocalStorage() {
+  chrome.storage.local.get(null, function(items) {
+    // var allKeys = Object.keys(items);
+    console.log('items in local storage', items);
+  });
+}
+
+function openGAPage(project) {
+  findGATab(project, function(tab) {
+    chrome.tabs.update(tab.id, {active: true});
+  });
+}
+
 function refreshToken(project, token) {
-  // console.log('refreshToken - token', token);
+  console.log('refreshToken - token', token);
 
   // get the alarm from storage
   chrome.storage.local.get(project, function(result) {
-    // console.log('result', result);
+    console.log('result', result);
 
     const alarm = result[project];
     const savedToken = alarm.token;
@@ -38,14 +115,20 @@ function refreshToken(project, token) {
     }
 
     // send notification when seconds left is getting low
-    if (secondsLeft(alarm.time) < 60) {
+    if (secondsLeft(alarm.time) < 300) {
       const opt = {
-        type: "basic",
-        title: "Primary Title",
-        message: "Primary message to display",
-        iconUrl: "", // somehow required
+        type: 'basic',
+        title: project.toUpperCase(),
+        message: 'Token is about to expire',
+        buttons: [{
+          title: "Open Google Admin >>",
+        }],
+        iconUrl: "image/notice.png",
       }
       chrome.notifications.create(project, opt);
+      setTimeout(function() {
+        chrome.notifications.clear(project, function(wasCleared){});
+      }, 5000);
     }
 
     // check the tabs if any one of them is still on the old token
@@ -65,15 +148,14 @@ function refreshToken(project, token) {
           const tab_match = tab.url.match(re);
 
           if (tab_match) {
+            // console.log('tab_match', tab_match);
+
             const tab_project = tab_match[2];
             const tab_token = tab_match[3];
+
             // console.log('tab_token', tab_token);
 
-            // reload the tab when
-            // * project matched
-            // * token not matched
-
-            if ((tab_project == project) && (tab_token != token)) {
+            if ((tab_project == project) && (!tab_token.startsWith(token))) {
               const url = tab_match[1]+'?project='+project+'&token='+token;
               chrome.tabs.update(tab.id, {url: url});
             }
@@ -84,92 +166,24 @@ function refreshToken(project, token) {
   });
 }
 
-function checkToken(project) {
-
-  chrome.storage.sync.get({
-    ga_site: 'https://google-admin.corp.google.com',
-  }, function(stored) {
-
-    const ga_site = stored.ga_site;
-    console.log('ga_site', ga_site);
-
-    chrome.tabs.query({url: ga_site+'*'+project+'*', currentWindow: true}, function (tabs) {
-      console.log('# of tabs', tabs.length);
-
-      // should only be one here
-      if (tabs.length > 0) {
-        const tab = tabs[0];
-        chrome.tabs.executeScript(tab.id, {
-            file: "js/token_link.js",
-            allFrames: true,
-        });
-      }
-    });
-  });
-
-}
-
-function createAlarm(alarm) {
-  const name = alarm.project_id;
-
-  // save alarm to local storage
-  chrome.storage.local.set({
-    [name]: alarm // [] is used so name can be evaluated as property
-  }, function() {
-    // start the alarm
-    chrome.alarms.create(name, {
-      delayInMinutes: 0.1, periodInMinutes: 0.5
-    });
-  });
-}
-
-function clearAlarm(alarm) {
-  const name = alarm.project_id;
-
-  chrome.alarms.get(name, function(a) {
-    chrome.alarms.clear(a.name);
-  });
-
-  chrome.storage.local.get(name, function() {
-    chrome.storage.local.remove(name);
-  });
-}
-
-function listAlarms() {
-  chrome.alarms.getAll(function(alarms) {
-    console.log('existing alarms', alarms);
-  });
-}
-
-function viewLocalStorage() {
-  chrome.storage.local.get(null, function(items) {
-    // var allKeys = Object.keys(items);
-    console.log('items in local storage', items);
-  });
-}
-
 // captured the alarm from the source page and save it in local storage
 chrome.extension.onRequest.addListener(function(req) {
   console.log(req);
 
   if (req.action == 'create_alarm') {
-    createAlarm(req.alarm);
-    viewLocalStorage();
+    createAlarm(req.payload);
+    // viewLocalStorage();
 
   } else if (req.action == 'clear_alarm') {
-
-    clearAlarm(req.alarm);
-    viewLocalStorage();
+    clearAlarm(req.payload.project);
+    // viewLocalStorage();
 
   } else if (req.action == 'view_alarms') {
-
     listAlarms();
     viewLocalStorage();
 
   } else if (req.action == 'check_token') {
-
-    const result = req.result;
-    refreshToken(result.project_id, result.token);
+    refreshToken(req.payload.project, req.payload.token);
 
   } else {
     // do nothing
@@ -177,29 +191,15 @@ chrome.extension.onRequest.addListener(function(req) {
 });
 
 chrome.alarms.onAlarm.addListener(function(alarm) {
-  console.log("Got an alarm!", alarm);
+  console.log('Got an alarm!', alarm);
   checkToken(alarm.name);
 });
 
-chrome.notifications.onClicked.addListener(function(notificationId) {
-  console.log("Notification: " + notificationId + "clicked!");
+chrome.notifications.onClicked.addListener(function(project) {
+  console.log('Notification: ' + project + ' is clicked!');
 });
 
-// chrome.browserAction.onClicked.addListener(function(tab) { //Fired when User Clicks ICON
-//   // get the stored pantheon_site from storage
-//   chrome.storage.sync.get({
-//     ga_site: 'https://google-admin.corp.google.com',
-//   }, function(stored) {
-//
-//     ga_site = stored.ga_site;
-//     // Inspect whether the place where user clicked matches with our site
-//     if (tab.url.indexOf(ga_site) != -1) {
-//       chrome.tabs.executeScript(tab.id, {
-//           file: "token_link.js",
-//           allFrames: true,
-//       });
-//     } else {
-//       alert("Current tab's URL must be "+ga_site);
-//     }
-//   });
-// });
+chrome.notifications.onButtonClicked.addListener(function(project, buttonIndex) {
+  console.log('Notification button: ' + project + ' ' + buttonIndex + ' is clicked!');
+  openGAPage(project);
+});
