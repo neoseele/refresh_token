@@ -43,9 +43,9 @@ function showAlarms() {
     if (secondsLeft > 0) {
       col2.innerText = bgPage.secondsToDate(secondsLeft);
 
-      button0.innerHTML = 'Refresh Token';
+      button0.innerHTML = 'Refresh';
       button0.onclick = function() {
-        bgPage.refreshToken(alarm.project_id, alarm.token);
+        bgPage.checkToken(alarm.project_id);
         window.close();
       }
 

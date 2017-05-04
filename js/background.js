@@ -2,7 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-const re = /(.*)\?project=(.*)\&token=(.*)/i
+const re = /(.*)\?project=(.*)\&token=([0-9a-zA-Z\-\_]+).*/i
+// const halfAnHour = 1800 * 1000 // in ms
 const halfAnHour = 1800 * 1000 // in ms
 
 function secondsLeft(time) {
@@ -26,6 +27,7 @@ function refreshToken(project, token) {
     const alarm = result[project];
     const savedToken = alarm.token;
 
+    // if the passed token is a new one, update the alarm with new token and new time
     if (token != savedToken) {
       alarm.token = token;
       alarm.time = Date.now();
@@ -35,7 +37,18 @@ function refreshToken(project, token) {
       });
     }
 
-    // get the saved pantheon_site
+    // send notification when seconds left is getting low
+    if (secondsLeft(alarm.time) < 60) {
+      const opt = {
+        type: "basic",
+        title: "Primary Title",
+        message: "Primary message to display",
+        iconUrl: "", // somehow required
+      }
+      chrome.notifications.create(project, opt);
+    }
+
+    // check the tabs if any one of them is still on the old token
     chrome.storage.sync.get({
       pantheon_site: 'https://pantheon.corp.google.com/',
     }, function(stored) {
@@ -54,6 +67,7 @@ function refreshToken(project, token) {
           if (tab_match) {
             const tab_project = tab_match[2];
             const tab_token = tab_match[3];
+            // console.log('tab_token', tab_token);
 
             // reload the tab when
             // * project matched
@@ -165,6 +179,10 @@ chrome.extension.onRequest.addListener(function(req) {
 chrome.alarms.onAlarm.addListener(function(alarm) {
   console.log("Got an alarm!", alarm);
   checkToken(alarm.name);
+});
+
+chrome.notifications.onClicked.addListener(function(notificationId) {
+  console.log("Notification: " + notificationId + "clicked!");
 });
 
 // chrome.browserAction.onClicked.addListener(function(tab) { //Fired when User Clicks ICON
