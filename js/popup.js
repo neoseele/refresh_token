@@ -39,7 +39,7 @@ function showAlarms() {
       checkbox.checked = !checkbox.checked;
     }
 
-    const secondsLeft = bgPage.secondsLeft(alarm.time);
+    var secondsLeft = bgPage.secondsLeft(alarm.time);
     if (secondsLeft > 0) {
       col2.innerText = bgPage.secondsToDate(secondsLeft);
 
@@ -78,7 +78,7 @@ function toggleAll() {
 function clear() {
   for (var i = 0; i < alarms.length; ++i) {
     if (document.getElementById('check' + i).checked) {
-      bgPage.clearAlarm(alarms[i]);
+      bgPage.clearAlarm(alarms[i].project);
     }
   }
   window.close();
@@ -98,8 +98,9 @@ window.onload = function() {
   document.getElementById('clear_all').onclick = clearAll;
 
   chrome.storage.local.get(null, function(result) {
+    // load the existing alarm payloads
     alarms = Object.values(result);
-    console.log('alarms', alarms);
+    // console.log('alarms', alarms);
     showAlarms();
   });
 };

@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 const re = /(.*)\?project=(.*)\&token=(.*)/i
-// const halfAnHour = 1800 * 1000 // in ms
 const halfAnHour = 1800 // in seconds
 
 function secondsLeft(time) {
@@ -99,7 +98,7 @@ function refreshToken(project, token) {
 
   // get the alarm from storage
   chrome.storage.local.get(project, function(result) {
-    console.log('result', result);
+    // console.log('result', result);
 
     const alarm = result[project];
     const savedToken = alarm.token;
@@ -115,7 +114,7 @@ function refreshToken(project, token) {
     }
 
     // send notification when seconds left is getting low
-    if (secondsLeft(alarm.time) < 300) {
+    if (secondsLeft(alarm.time) < 6000) {
       const opt = {
         type: 'basic',
         title: project.toUpperCase(),
