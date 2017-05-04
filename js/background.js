@@ -2,10 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-const re = /(.*)\?project=(.*)\&token=(.*)/i
+const re = /(.*)\?project=(.*)\&token=([0-9a-zA-Z\-\_]+).*/i
+// const halfAnHour = 1800 * 1000 // in ms
+const halfAnHour = 1800 * 1000 // in ms
 
 function secondsLeft(time) {
-  const halfAnHour = 100 * 1000 // in ms
   const now = Date.now();
   const seconds = (halfAnHour - (now - time)) / 1000;
   return Math.round(seconds);
@@ -16,19 +17,44 @@ function secondsToDate(seconds) {
   return date;
 }
 
-function refreshToken(project) {
-  // get the alarm detail from storage
-  chrome.storage.local.get(project, function(result) {
-    console.log('result', result);
-    const alarmDetail = result[project];
-    const newToken = alarmDetail.token;
+function refreshToken(project, token) {
+  // console.log('refreshToken - token', token);
 
-    // get the saved pantheon_site
+  // get the alarm from storage
+  chrome.storage.local.get(project, function(result) {
+    // console.log('result', result);
+
+    const alarm = result[project];
+    const savedToken = alarm.token;
+
+    // if the passed token is a new one, update the alarm with new token and new time
+    if (token != savedToken) {
+      alarm.token = token;
+      alarm.time = Date.now();
+      // save the alarm with the new token
+      chrome.storage.local.set({
+        [project]: alarm
+      });
+    }
+
+    // send notification when seconds left is getting low
+    if (secondsLeft(alarm.time) < 60) {
+      const opt = {
+        type: "basic",
+        title: "Primary Title",
+        message: "Primary message to display",
+        iconUrl: "", // somehow required
+      }
+      chrome.notifications.create(project, opt);
+    }
+
+    // check the tabs if any one of them is still on the old token
     chrome.storage.sync.get({
       pantheon_site: 'https://pantheon.corp.google.com/',
     }, function(stored) {
 
       const pantheon_site = stored.pantheon_site;
+      // console.log('pantheon_site', pantheon_site);
 
       // loop through all tabs start with $pantheon_site in current window
       chrome.tabs.query({url: pantheon_site+'*', currentWindow: true}, function (tabs) {
@@ -41,13 +67,14 @@ function refreshToken(project) {
           if (tab_match) {
             const tab_project = tab_match[2];
             const tab_token = tab_match[3];
+            // console.log('tab_token', tab_token);
 
             // reload the tab when
             // * project matched
             // * token not matched
 
-            if ((tab_project == project) && (tab_token != alarmDetail.token)) {
-              const url = tab_match[1]+'?project='+project+'&token='+newToken;
+            if ((tab_project == project) && (tab_token != token)) {
+              const url = tab_match[1]+'?project='+project+'&token='+token;
               chrome.tabs.update(tab.id, {url: url});
             }
           }
@@ -57,13 +84,60 @@ function refreshToken(project) {
   });
 }
 
-function clearAlarm(alarmName) {
-  chrome.alarms.get(alarmName, function(alarm) {
-    chrome.alarms.clear(alarm.name);
+function checkToken(project) {
+
+  chrome.storage.sync.get({
+    ga_site: 'https://google-admin.corp.google.com',
+  }, function(stored) {
+
+    const ga_site = stored.ga_site;
+    console.log('ga_site', ga_site);
+
+    chrome.tabs.query({url: ga_site+'*'+project+'*', currentWindow: true}, function (tabs) {
+      console.log('# of tabs', tabs.length);
+
+      // should only be one here
+      if (tabs.length > 0) {
+        const tab = tabs[0];
+        chrome.tabs.executeScript(tab.id, {
+            file: "js/token_link.js",
+            allFrames: true,
+        });
+      }
+    });
   });
 
-  chrome.storage.local.get(alarmName, function() {
-    chrome.storage.local.remove(alarmName);
+}
+
+function createAlarm(alarm) {
+  const name = alarm.project_id;
+
+  // save alarm to local storage
+  chrome.storage.local.set({
+    [name]: alarm // [] is used so name can be evaluated as property
+  }, function() {
+    // start the alarm
+    chrome.alarms.create(name, {
+      delayInMinutes: 0.1, periodInMinutes: 0.5
+    });
+  });
+}
+
+function clearAlarm(alarm) {
+  const name = alarm.project_id;
+
+  chrome.alarms.get(name, function(a) {
+    chrome.alarms.clear(a.name);
+  });
+
+  chrome.storage.local.get(name, function() {
+    chrome.storage.local.remove(name);
+  });
+}
+
+function listAlarms() {
+  chrome.alarms.getAll(function(alarms) {
+    console.log('existing alarms', alarms);
   });
 }
 
@@ -79,46 +153,36 @@ chrome.extension.onRequest.addListener(function(req) {
   console.log(req);
 
   if (req.action == 'create_alarm') {
-
-    const details = req.alarm;
-    const alarmName = details.project_id;
-
-    chrome.storage.local.set({
-      [alarmName]: details // will evaluate alarmName as property name
-    }, function() {
-      chrome.alarms.create(alarmName, {
-        delayInMinutes: 0.1, periodInMinutes: 0.1
-      });
-    });
-
+    createAlarm(req.alarm);
     viewLocalStorage();
 
   } else if (req.action == 'clear_alarm') {
 
-
-    const details = req.alarm;
-    const alarmName = details.project_id;
-
-    clearAlarm(alarmName);
-
+    clearAlarm(req.alarm);
     viewLocalStorage();
 
   } else if (req.action == 'view_alarms') {
 
-    chrome.alarms.getAll(function(alarms) {
-      console.log('existing alarms', alarms);
-    });
-
+    listAlarms();
     viewLocalStorage();
 
+  } else if (req.action == 'check_token') {
+
+    const result = req.result;
+    refreshToken(result.project_id, result.token);
+
   } else {
-    refresh(req.project_id);
+    // do nothing
   }
 });
 
 chrome.alarms.onAlarm.addListener(function(alarm) {
   console.log("Got an alarm!", alarm);
-  refreshToken(alarm.name);
+  checkToken(alarm.name);
+});
+
+chrome.notifications.onClicked.addListener(function(notificationId) {
+  console.log("Notification: " + notificationId + "clicked!");
 });
 
 // chrome.browserAction.onClicked.addListener(function(tab) { //Fired when User Clicks ICON

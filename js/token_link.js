@@ -13,7 +13,13 @@ links = links.map(function(element) {
 for (var i = 0; i < links.length; ++i) {
   const match = links[i].match(/.*\?project=(.*)\&token=(.*)/i);
   if (match) {
-    chrome.extension.sendRequest({action: 'refresh', project_id: match[1]});
+    chrome.extension.sendRequest({
+      action: 'check_token',
+      result: {
+        'project_id': match[1],
+        'token': match[2]
+      }
+    });
     break;
   }
 }
