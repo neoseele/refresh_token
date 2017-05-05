@@ -2,12 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-const re = /(.*)\?project=(.*)\&token=(.*)/i
-const halfAnHour = 1800 // in seconds
+const timeToExpire = 1800 // 30 minites
+const timeToNotify = 300 // 5 minites
 
 function secondsLeft(time) {
   const now = Date.now();
-  const seconds = halfAnHour - ((now - time) / 1000);
+  const seconds = timeToExpire - ((now - time) / 1000);
   return Math.round(seconds);
 }
 
@@ -50,7 +50,7 @@ function createAlarm(payload) {
   }, function() {
     // start the alarm
     chrome.alarms.create(name, {
-      delayInMinutes: 0.1, periodInMinutes: 0.2
+      delayInMinutes: 0.1, periodInMinutes: 0.5
     });
   });
 }
@@ -114,11 +114,12 @@ function refreshToken(project, token) {
     }
 
     // send notification when seconds left is getting low
-    if (secondsLeft(alarm.time) < 6000) {
+    var remainingSeconds = secondsLeft(alarm.time);
+    if (remainingSeconds < timeToNotify) {
       const opt = {
         type: 'basic',
         title: project.toUpperCase(),
-        message: 'Token is about to expire',
+        message: 'Token is about to expire (' + secondsToDate(remainingSeconds) +')',
         buttons: [{
           title: "Open Google Admin >>",
         }],
@@ -139,23 +140,25 @@ function refreshToken(project, token) {
       // console.log('pantheon_site', pantheon_site);
 
       // loop through all tabs start with $pantheon_site in current window
-      chrome.tabs.query({url: pantheon_site+'*', currentWindow: true}, function (tabs) {
+      chrome.tabs.query({url: pantheon_site+'*'+project+'*', currentWindow: true}, function (tabs) {
         // since the extension click works only on a $pantheon_site tab
         // there always will be one or more tabs whose url starts with $pantheon_site
         for (var j = 0; j < tabs.length; ++j) {
           const tab = tabs[j];
-          const tab_match = tab.url.match(re);
+          const tab_match = tab.url.match(/token=([^&/]+)/i);
+
+          console.log('tab_url', tab.url);
 
           if (tab_match) {
-            // console.log('tab_match', tab_match);
+            console.log('tab_match', tab_match);
 
-            const tab_project = tab_match[2];
-            const tab_token = tab_match[3];
+            // const tab_op = tab_match[2];
+            // const tab_project = tab_match[3];
+            const tab_token = tab_match[1];
+            console.log('tab_token', tab_token);
 
-            // console.log('tab_token', tab_token);
-
-            if ((tab_project == project) && (!tab_token.startsWith(token))) {
-              const url = tab_match[1]+'?project='+project+'&token='+token;
+            if (tab_token != token) {
+              const url = tab.url.replace(tab_token, token);
               chrome.tabs.update(tab.id, {url: url});
             }
           }

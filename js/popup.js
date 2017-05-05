@@ -2,9 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// This extension demonstrates using chrome.downloads.download() to
-// download URLs.
-
 var alarms = [];
 var bgPage = chrome.extension.getBackgroundPage();
 
@@ -90,8 +87,6 @@ function clearAll() {
   window.close();
 }
 
-// Set up event handlers and inject send_links.js into all frames in the active
-// tab.
 window.onload = function() {
   document.getElementById('toggle_all').onchange = toggleAll;
   document.getElementById('clear').onclick = clear;
