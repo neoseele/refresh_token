@@ -1,21 +1,40 @@
 {
   "name": "Token Refresher",
   "description": "Reload tabs with refreshed token",
-  "version": "0.2",
+  "version": "1.1",
   "minimum_chrome_version": "16.0.884",
   "permissions": [
     "tabs",
     "storage",
+    "alarms",
+    "notifications",
     "<all_urls>"
   ],
   "browser_action": {
-    "default_name": "Refresh Token"
+    "default_name": "Refresh Token",
+    "default_popup": "popup.html"
   },
   "background":{
     "scripts":[
-      "background.js"
+      "js/background.js"
     ]
   },
+  "web_accessible_resources": [
+    "image/notice.png"
+  ],
+  "content_scripts": [
+    {
+      "run_at": "document_end",
+      "matches": [
+        "https://google-admin.corp.google.com/*",
+        "http://localhost:4567/*"
+      ],
+      "js": [
+        "js/jquery.min.js",
+        "js/alarms.js"
+      ]
+    }
+  ],
   "options_page": "options.html",
   "manifest_version": 2
 }

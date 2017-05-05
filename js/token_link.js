@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// Send the token link back to the background
+// Send the project id back to the background
 // background injects this script into all frames in the active tab.
 
 var links = [].slice.apply(document.getElementsByTagName('a'));
@@ -11,9 +11,15 @@ links = links.map(function(element) {
 });
 
 for (var i = 0; i < links.length; ++i) {
-  var link = links[i];
-  if (link.search(/.*\?project=.*\&token=.*/) != -1) {
-    chrome.extension.sendRequest(link);
+  const match = links[i].match(/.*\?project=(.*)\&token=(.*)/i);
+  if (match) {
+    chrome.extension.sendRequest({
+      action: 'check_token',
+      payload: {
+        'project': match[1],
+        'token': match[2]
+      }
+    });
     break;
   }
 }
