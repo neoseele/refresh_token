@@ -145,30 +145,24 @@ function refreshToken(project, token) {
       const pantheon_site = stored.pantheon_site;
       // console.log('pantheon_site', pantheon_site);
 
-      // loop through all tabs start with $pantheon_site in current window
+      // loop through all tabs to check existing pantheon pages
       chrome.tabs.query({url: pantheon_site+'*'+project+'*', currentWindow: true}, function (tabs) {
-        // since the extension click works only on a $pantheon_site tab
-        // there always will be one or more tabs whose url starts with $pantheon_site
-        for (var j = 0; j < tabs.length; ++j) {
-          const tab = tabs[j];
+        tabs.forEach(function(tab, index) {
           const tab_match = tab.url.match(/token=([^&/]+)/i);
-
-          console.log('tab_url', tab.url);
+          // console.log('tab_url', tab.url);
 
           if (tab_match) {
-            console.log('tab_match', tab_match);
-
-            // const tab_op = tab_match[2];
-            // const tab_project = tab_match[3];
+            // console.log('tab_match', tab_match);
             const tab_token = tab_match[1];
             console.log('tab_token', tab_token);
 
             if (tab_token != token) {
               const url = tab.url.replace(tab_token, token);
+              // reload the tab with new token
               chrome.tabs.update(tab.id, {url: url});
             }
           }
-        }
+        });
       });
     });
   });
@@ -176,7 +170,7 @@ function refreshToken(project, token) {
 
 // captured the alarm from the source page and save it in local storage
 chrome.extension.onRequest.addListener(function(req) {
-  console.log(req);
+  console.log('req', req);
 
   if (req.action == 'create_alarm') {
     createAlarm(req.payload);

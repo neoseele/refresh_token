@@ -19,26 +19,16 @@ function showAlarms() {
     var col0 = document.createElement('td');
     var col1 = document.createElement('td');
     var col2 = document.createElement('td');
-    var col3 = document.createElement('td');
 
-    var checkbox = document.createElement('input');
-    checkbox.checked = true;
-    checkbox.type = 'checkbox';
-    checkbox.id = 'check' + i;
+    col0.innerText = alarm.project;
 
+    // button0
     var button0 = document.createElement('button');
-    button0.id = 'button' + i;
-
-    col0.appendChild(checkbox);
-    col1.innerText = alarm.project;
-    col1.style.whiteSpace = 'nowrap';
-    col1.onclick = function() {
-      checkbox.checked = !checkbox.checked;
-    }
+    button0.id = 'button0' + i;
 
     var secondsLeft = bgPage.secondsLeft(alarm.time);
     if (secondsLeft > 0) {
-      col2.innerText = bgPage.secondsToDate(secondsLeft);
+      col1.innerText = bgPage.secondsToDate(secondsLeft);
 
       button0.innerHTML = 'Refresh';
       button0.onclick = function() {
@@ -47,27 +37,29 @@ function showAlarms() {
       }
 
     } else {
-      col2.innerText = 'expired';
+      col1.innerText = 'expired';
 
       button0.innerHTML = 'Google Admin';
       button0.onclick = bgPage.openGAPage(alarm.project);
     }
 
-    col3.appendChild(button0);
+    // button1
+    var button1 = document.createElement('button');
+    button1.id = 'button1' + i;
+    button1.innerHTML = 'Clear';
+    button1.onclick = function() {
+      bgPage.clearAlarm(alarm.project);
+      window.close();
+    }
+
+    col2.appendChild(button0);
+    col2.appendChild(button1);
 
     row.appendChild(col0);
     row.appendChild(col1);
     row.appendChild(col2);
-    row.appendChild(col3);
-    alarmsTable.appendChild(row);
-  }
-}
 
-// Toggle the checked state of all alarms.
-function toggleAll() {
-  var checked = document.getElementById('toggle_all').checked;
-  for (var i = 0; i < alarms.length; ++i) {
-    document.getElementById('check' + i).checked = checked;
+    alarmsTable.appendChild(row);
   }
 }
 
@@ -88,8 +80,6 @@ function clearAll() {
 }
 
 window.onload = function() {
-  document.getElementById('toggle_all').onchange = toggleAll;
-  document.getElementById('clear').onclick = clear;
   document.getElementById('clear_all').onclick = clearAll;
 
   chrome.storage.local.get(null, function(result) {

@@ -3,12 +3,20 @@
   <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
   <link rel="stylesheet" type="text/css" href="css/bootstrap-theme.min.css">
   <script src='js/popup.js'></script>
+  <style type="text/css" >
+    body {
+      min-width: 400px;
+      max-width: 100%;
+    }
+    button {
+      margin: 2px;
+    }
+  </style>
 </head>
 <body>
   <table class="table table-hover">
     <thead class="thead-inverse">
       <tr>
-        <th><input type="checkbox" checked id="toggle_all"></th>
         <th align="left">PROJECT</th>
         <th align="left">TIME_REMAINING</th>
         <th align="left">ACTIONS</th>
@@ -17,7 +25,6 @@
     <tbody id="alarms">
     </tbody>
   </table>
-  <button id="clear">Clear Alarm</button>
   <button id="clear_all">Clear All Alarms</button>
 </body>
 </html>
