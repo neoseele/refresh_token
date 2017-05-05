@@ -43,26 +43,32 @@ function checkToken(project) {
 
 function createAlarm(payload) {
   const name = payload.project;
+  var resetAlarm = true;
 
-  // save alarm to local storage
-  chrome.storage.local.set({
-    [name]: payload // [] is used so name like 'nmiu-play' can be evaluated as property
-  }, function() {
-    // start the alarm
-    chrome.alarms.create(name, {
-      delayInMinutes: 0.1, periodInMinutes: 0.5
-    });
+  chrome.storage.local.get(name, function(stored) {
+    console.log('stored', stored);
+
+    stored_payload = stored[name];
+    if ((stored_payload) && (payload.token == stored_payload.token)) {
+      resetAlarm = false;
+    }
+
+    if (resetAlarm) {
+      chrome.storage.local.set({
+        [name]: payload // [] is used so name like 'nmiu-play' can be evaluated as property
+      }, function() {
+        // start the alarm
+        chrome.alarms.create(name, {
+          delayInMinutes: 0.1, periodInMinutes: 0.5
+        });
+      });
+    }
   });
 }
 
 function clearAlarm(name) {
-  chrome.alarms.get(name, function() {
-    chrome.alarms.clear(name);
-  });
-
-  chrome.storage.local.get(name, function() {
-    chrome.storage.local.remove(name);
-  });
+  chrome.alarms.clear(name);
+  chrome.storage.local.remove(name);
 }
 
 function clearAllAlarms() {
