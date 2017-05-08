@@ -1,7 +1,7 @@
 {
   "name": "Token Refresher",
   "description": "Reload tabs with refreshed token",
-  "version": "1.1",
+  "version": "2.1",
   "minimum_chrome_version": "16.0.884",
   "permissions": [
     "tabs",

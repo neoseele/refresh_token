@@ -152,7 +152,7 @@ function refreshToken(project, token) {
 }
 
 // captured the alarm from the source page and save it in local storage
-chrome.extension.onRequest.addListener(function(req) {
+chrome.runtime.onMessage.addListener(function(req) {
   console.log('req', req);
 
   if (req.action == 'create_alarm') {
