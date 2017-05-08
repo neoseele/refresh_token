@@ -48,6 +48,7 @@ function googlAdminPage() {
       var token = match[2];
 
       console.log("...found token for project " + project_id);
+      console.log("...token " + token);
       console.log("...getting token expiration");
 
       var expiry_ms = 0;
@@ -62,16 +63,19 @@ function googlAdminPage() {
       }
       console.log('expiry_ms', expiry_ms);
 
-      chrome.runtime.sendMessage({
-        action: 'create_alarm',
-        payload: {
-          'ga_link': window.location.href,
-          'token_link': link,
-          'project': project_id,
-          'token': token,
-          'time': Date.now()
-        }
-      });
+      if (expiry_ms) {
+        // send message when expiry_ms > 0
+        chrome.runtime.sendMessage({
+          action: 'create_alarm',
+          payload: {
+            'ga_link': window.location.href,
+            'token_link': link,
+            'project': project_id,
+            'token': token,
+            'time': Date.now()
+          }
+        });
+      }
   });
 }
 
