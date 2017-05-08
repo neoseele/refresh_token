@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 const timeToExpire = 1800 // 30 minites
-const timeToNotify = 300 // 5 minites
+const timeToNotify = 360 // 6 minites
 
 function secondsLeft(time) {
   const now = Date.now();
@@ -62,7 +62,7 @@ function createAlarm(payload) {
       }, function() {
         // start the alarm
         chrome.alarms.create(name, {
-          delayInMinutes: 0.1, periodInMinutes: 0.5
+          delayInMinutes: 0.1, periodInMinutes: 1
         });
       });
     }
