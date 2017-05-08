@@ -7,59 +7,105 @@ var bgPage = chrome.extension.getBackgroundPage();
 
 // Display all alarms
 function showAlarms() {
-  var alarmsTable = document.getElementById('alarms');
-  while (alarmsTable.children.length > 1) {
-    alarmsTable.removeChild(alarmsTable.children[alarmsTable.children.length - 1])
+  var ulAlarms = document.getElementById('alarms');
+  var btnClear = document.getElementById('clear');
+
+  while (ulAlarms.children.length > 1) {
+    ulAlarms.removeChild(ulAlarms.children[alarmsTable.children.length - 1])
   }
+
+  if (alarms.length > 0) {
+    btnClear.style.display = 'inline-block';
+  } else {
+    var li = document.createElement('li');
+    li.className = 'mdl-list__item';
+    li.innerText = 'No alarm found';
+    ulAlarms.appendChild(li);
+    return;
+  }
+
   for (var i = 0; i < alarms.length; ++i) {
     var alarm = alarms[i];
 
-    var row = document.createElement('tr');
+    var li = document.createElement('li');
+    li.className = 'mdl-list__item mdl-list__item--two-line';
 
-    var col0 = document.createElement('td');
-    var col1 = document.createElement('td');
-    var col2 = document.createElement('td');
+    var spanPrimaryContent = document.createElement('span');
+    spanPrimaryContent.className = 'mdl-list__item-primary-content';
 
-    col0.innerText = alarm.project;
+    var icon = document.createElement('i');
+    icon.className = 'material-icons mdl-list__item-icon';
+    icon.innerText = 'alarm';
 
-    // button0
+    var spanAlarm = document.createElement('span');
+    spanAlarm.innerText = alarm.project;
+    spanAlarm.className = 'alarm';
+    spanAlarm.onclick = (function() {
+      const project = alarm.project;
+      return function() {
+        bgPage.openGAPage(project);
+      }
+    })();
+
+    var spanAlarmDetail = document.createElement('span');
+    spanAlarmDetail.className = 'mdl-list__item-sub-title';
+    spanAlarmDetail.innerText = alarm.project;
+
+    var spanSecondaryContent = document.createElement('span');
+    spanSecondaryContent.className = 'mdl-list__item-secondary-content';
+
+    // var spanActions = document.createElement('span');
+    // spanActions.className = 'mdl-list__item-secondary-info';
+    // spanActions.innerText = 'Action';
+
+    // refresh button
     var button0 = document.createElement('button');
     button0.id = 'button0' + i;
 
     var secondsLeft = bgPage.secondsLeft(alarm.time);
-    if (secondsLeft > 0) {
-      col1.innerText = bgPage.secondsToDate(secondsLeft);
+    spanAlarmDetail.innerText = bgPage.secondsToDate(secondsLeft);
 
-      button0.innerHTML = 'Refresh';
-      button0.onclick = function() {
-        bgPage.checkToken(alarm.project);
+    button0.innerHTML = '<i class="material-icons">cached</i>';
+    button0.className = 'mdl-button mdl-js-button mdl-button--icon';
+    button0.onclick = (function() {
+      const project = alarm.project;
+      return function() {
+        bgPage.checkToken(project);
         window.close();
       }
+    })();
 
-    } else {
-      col1.innerText = 'expired';
-
-      button0.innerHTML = 'Google Admin';
-      button0.onclick = bgPage.openGAPage(alarm.project);
+    // disable refresh button when the token is already expired
+    if (secondsLeft < 0) {
+      spanAlarmDetail.innerText = 'Expired';
+      // button0.disabled = true;
     }
 
-    // button1
+    // delete button
     var button1 = document.createElement('button');
     button1.id = 'button1' + i;
-    button1.innerHTML = 'Clear';
-    button1.onclick = function() {
-      bgPage.clearAlarm(alarm.project);
-      window.close();
-    }
+    button1.innerHTML = '<i class="material-icons">delete</i>';
+    button1.className = 'mdl-button mdl-js-button mdl-button--icon';
+    button1.onclick = (function() {
+      const project = alarm.project;
+      return function() {
+        bgPage.clearAlarm(project);
+        window.close();
+      }
+    })();
 
-    col2.appendChild(button0);
-    col2.appendChild(button1);
+    spanPrimaryContent.appendChild(icon);
+    spanPrimaryContent.appendChild(spanAlarm);
+    spanPrimaryContent.appendChild(spanAlarmDetail);
 
-    row.appendChild(col0);
-    row.appendChild(col1);
-    row.appendChild(col2);
+    // spanSecondaryContent.appendChild(spanActions);
+    spanSecondaryContent.appendChild(button0);
+    spanSecondaryContent.appendChild(button1);
 
-    alarmsTable.appendChild(row);
+    li.appendChild(spanPrimaryContent);
+    li.appendChild(spanSecondaryContent);
+
+    ulAlarms.appendChild(li);
   }
 }
 
@@ -80,7 +126,7 @@ function clearAll() {
 }
 
 window.onload = function() {
-  document.getElementById('clear_all').onclick = clearAll;
+  document.getElementById('clear').onclick = clearAll;
 
   chrome.storage.local.get(null, function(result) {
     // load the existing alarm payloads

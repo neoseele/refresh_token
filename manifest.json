@@ -30,7 +30,6 @@
         "http://localhost:4567/*"
       ],
       "js": [
-        "js/jquery.min.js",
         "js/alarms.js"
       ]
     }
