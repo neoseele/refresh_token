@@ -22,7 +22,10 @@ function findGATab(project, callback) {
   }, function(stored) {
     const ga_site = stored.ga_site;
 
-    chrome.tabs.query({url: ga_site+'*'+project+'*', currentWindow: true}, function (tabs) {
+    chrome.tabs.query({
+        url: ga_site+'*'+project+'*',
+        currentWindow: true
+      }, function (tabs) {
       // should be only one of these found
       if ((tabs.length > 0) && (typeof callback === 'function')) {
         console.log('tab', tabs[0]);
@@ -122,10 +125,14 @@ function refreshToken(project, token) {
     // send notification when seconds left is getting low
     var remainingSeconds = secondsLeft(alarm.time);
     if (remainingSeconds < timeToNotify) {
+      var msg = 'Token is about to expire ('+secondsToDate(remainingSeconds)+' remaining)';
+      if (remainingSeconds < 0) {
+        msg = 'Token expred';
+      }
       const opt = {
         type: 'basic',
         title: project.toUpperCase(),
-        message: 'Token is about to expire (' + secondsToDate(remainingSeconds) +')',
+        message: msg,
         buttons: [{
           title: "Open Google Admin >>",
         }],
@@ -137,7 +144,7 @@ function refreshToken(project, token) {
       }, 5000);
     }
 
-    // check the tabs if any one of them is still on the old token
+    // check if any tab is not using $token
     chrome.storage.sync.get({
       pantheon_site: 'https://pantheon.corp.google.com/',
     }, function(stored) {
@@ -146,7 +153,10 @@ function refreshToken(project, token) {
       // console.log('pantheon_site', pantheon_site);
 
       // loop through all tabs to check existing pantheon pages
-      chrome.tabs.query({url: pantheon_site+'*'+project+'*', currentWindow: true}, function (tabs) {
+      chrome.tabs.query({
+        url: pantheon_site+'*'+project+'*',
+        currentWindow: true
+      }, function (tabs) {
         tabs.forEach(function(tab, index) {
           const tab_match = tab.url.match(/token=([^&/]+)/i);
           // console.log('tab_url', tab.url);
@@ -157,9 +167,10 @@ function refreshToken(project, token) {
             console.log('tab_token', tab_token);
 
             if (tab_token != token) {
-              const url = tab.url.replace(tab_token, token);
               // reload the tab with new token
-              chrome.tabs.update(tab.id, {url: url});
+              chrome.tabs.update(tab.id, {
+                url: tab.url.replace(tab_token, token)
+              });
             }
           }
         });
@@ -198,10 +209,10 @@ chrome.alarms.onAlarm.addListener(function(alarm) {
 });
 
 chrome.notifications.onClicked.addListener(function(project) {
-  console.log('Notification: ' + project + ' is clicked!');
+  console.log('Notification: '+project+' is clicked!');
 });
 
 chrome.notifications.onButtonClicked.addListener(function(project, buttonIndex) {
-  console.log('Notification button: ' + project + ' ' + buttonIndex + ' is clicked!');
+  console.log('Notification button: '+project+' '+buttonIndex+' is clicked!');
   openGAPage(project);
 });

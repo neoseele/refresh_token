@@ -16,7 +16,6 @@ function getTokenDetails() {
   const tokenLink = getTokenLink();
   const match = tokenLink.match(/.*\?project=(.*)\&token=(.*)/i);
   if (match) {
-    // console.log('matched');
     return {
       'ga_link': window.location.href,
       'token_link': tokenLink,
@@ -31,12 +30,6 @@ function createAlarm(alarm) {
   chrome.extension.sendRequest({
     action: 'create_alarm',
     payload: alarm
-  });
-}
-
-function viewAlarms() {
-  chrome.extension.sendRequest({
-    action: 'view_alarms',
   });
 }
 
