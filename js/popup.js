@@ -43,7 +43,7 @@ function showAlarms() {
     spanAlarm.onclick = (function() {
       const project = alarm.project;
       return function() {
-        bgPage.openGAPage(project);
+        bgPage.openGA(project);
       }
     })();
 
@@ -70,7 +70,7 @@ function showAlarms() {
     button0.onclick = (function() {
       const project = alarm.project;
       return function() {
-        bgPage.checkToken(project);
+        bgPage.refreshGA(project);
         window.close();
       }
     })();

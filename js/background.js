@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 const timeToExpire = 1800 // 30 minites
-const timeToNotify = 1700 // 6 minites
+const timeToNotify = 360 // 6 minites
 
 function secondsLeft(time) {
   const now = Date.now();
@@ -46,29 +46,32 @@ function checkToken(project) {
     // send notification when seconds left is getting low
     var remainingSeconds = secondsLeft(alarm.time);
 
-    if (remainingSeconds < 0) {
-      refreshGA(project);
-    } else {
-      if (remainingSeconds < timeToNotify) {
-        var msg = 'Token is about to expire ('+secondsToDate(remainingSeconds)+')';
-        if (remainingSeconds < 0) {
-          msg = 'Token expred';
-        }
-        const opt = {
-          type: 'basic',
-          title: project.toUpperCase(),
-          message: msg,
-          buttons: [{
-            title: "Refresh Now",
-          }],
-          iconUrl: "image/notice.png",
-        }
-        chrome.notifications.create(project, opt);
-        setTimeout(function() {
-          chrome.notifications.clear(project, function(wasCleared){});
-        }, 5000);
+    if (remainingSeconds < timeToNotify) {
+      var msg = 'Token is about to expire ('+secondsToDate(remainingSeconds)+')';
+      if (remainingSeconds < 0) {
+        msg = 'Token expred';
+        // refreshGA(project);
       }
+      const opt = {
+        type: 'basic',
+        title: project.toUpperCase(),
+        message: msg,
+        buttons: [{
+          title: "Refresh Now",
+        }],
+        iconUrl: "image/notice.png",
+      }
+      chrome.notifications.create(project, opt);
+      setTimeout(function() {
+        chrome.notifications.clear(project, function(wasCleared){});
+      }, 5000);
     }
+  });
+}
+function openGA(project) {
+  console.log('openGA', project);
+  findGATab(project, function(tab) {
+    chrome.tabs.update(tab.id, {active: true});
   });
 }
 
@@ -107,13 +110,6 @@ function clearAllAlarms() {
     alarms.forEach(function(alarm, index) {
       clearAlarm(alarm.name);
     });
-  });
-}
-
-function openGAPage(project) {
-  console.log('openGAPage', project);
-  findGATab(project, function(tab) {
-    chrome.tabs.update(tab.id, {active: true});
   });
 }
 
@@ -171,5 +167,6 @@ chrome.notifications.onClicked.addListener(function(project) {
 
 chrome.notifications.onButtonClicked.addListener(function(project, buttonIndex) {
   console.log('Notification button: '+project+' '+buttonIndex+' is clicked!');
+  openGA(project);
   refreshGA(project);
 });
