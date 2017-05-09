@@ -42,38 +42,53 @@ function checkToken(project) {
   chrome.storage.local.get(project, function(result) {
     // console.log('result', result);
     const alarm = result[project];
+    const remainingSeconds = secondsLeft(alarm.time);
 
-    // send notification when seconds left is getting low
-    var remainingSeconds = secondsLeft(alarm.time);
+    // do nothing when timeToNotify is not reached yet
+    if (remainingSeconds > timeToNotify) return;
 
-    if (remainingSeconds < timeToNotify) {
-      var msg = 'Token is about to expire ('+secondsToDate(remainingSeconds)+')';
-      if (remainingSeconds < 0) {
-        msg = 'Token expred';
-        
-        chrome.storage.sync.get({
-          auto_reload: false,
-        }, function(stored) {
-          if (stored.auto_reload) refreshGA(project);
-        });
+    // send notice when remainingSeconds is low
+    if (remainingSeconds > 0) {
+      sendNotice(project, remainingSeconds);
+      return;
+    }
 
-      }
-      const opt = {
-        type: 'basic',
-        title: project.toUpperCase(),
-        message: msg,
-        buttons: [{
-          title: "Refresh Now",
-        }],
-        iconUrl: "image/notice.png",
-      }
-      chrome.notifications.create(project, opt);
-      setTimeout(function() {
-        chrome.notifications.clear(project, function(wasCleared){});
-      }, 5000);
+    // token expired
+    // stop sending notice after 2 minutes to stop annoying people
+    if (remainingSeconds > -120) {
+      sendNotice(project, remainingSeconds);
+
+      chrome.storage.sync.get({
+        auto_reload: false,
+      }, function(stored) {
+        // auto reload when user specifically asks to
+        if (stored.auto_reload) refreshGA(project);
+      });
     }
   });
 }
+
+function sendNotice(project, remainingSeconds) {
+    var msg = 'Token is about to expire ('+secondsToDate(remainingSeconds)+')';
+    if (remainingSeconds < 0) {
+      msg = 'Token expred';
+    }
+
+    const opt = {
+      type: 'basic',
+      title: project.toUpperCase(),
+      message: msg,
+      buttons: [{
+        title: "Refresh Now",
+      }],
+      iconUrl: "image/notice.png",
+    }
+    chrome.notifications.create(project, opt);
+    setTimeout(function() {
+      chrome.notifications.clear(project, function(wasCleared){});
+    }, 5000);
+}
+
 function openGA(project) {
   console.log('openGA', project);
   findGATab(project, function(tab) {
