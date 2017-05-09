@@ -50,7 +50,13 @@ function checkToken(project) {
       var msg = 'Token is about to expire ('+secondsToDate(remainingSeconds)+')';
       if (remainingSeconds < 0) {
         msg = 'Token expred';
-        // refreshGA(project);
+        
+        chrome.storage.sync.get({
+          auto_reload: false,
+        }, function(stored) {
+          if (stored.auto_reload) refreshGA(project);
+        });
+
       }
       const opt = {
         type: 'basic',
