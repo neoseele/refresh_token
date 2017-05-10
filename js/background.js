@@ -114,7 +114,7 @@ function createAlarm(payload) {
     refreshToken(project, token);
     // start the alarm
     chrome.alarms.create(project, {
-      delayInMinutes: 0.1, periodInMinutes: 1
+      delayInMinutes: 0.1, periodInMinutes: 2
     });
   });
 

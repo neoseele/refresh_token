@@ -26,8 +26,7 @@
     {
       "run_at": "document_end",
       "matches": [
-        "https://google-admin.corp.google.com/*",
-        "http://localhost:4567/*"
+        "https://google-admin.corp.google.com/*"
       ],
       "js": [
         "js/alarms.js"
