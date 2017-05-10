@@ -24,7 +24,7 @@ function findGATab(project, callback) {
 
     chrome.tabs.query({
         url: ga_site+'*'+project+'*',
-        currentWindow: true
+        // currentWindow: true
       }, function (tabs) {
       // should be only one of these found
       if ((tabs.length > 0) && (typeof callback === 'function')) {
@@ -145,7 +145,7 @@ function refreshToken(project, token) {
     // loop through all tabs to check existing pantheon pages
     chrome.tabs.query({
       url: pantheon_site+'*'+project+'*',
-      currentWindow: true
+      // currentWindow: true
     }, function (tabs) {
       tabs.forEach(function(tab, index) {
         const tab_match = tab.url.match(/token=([^&/]+)/i);
