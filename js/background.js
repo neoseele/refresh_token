@@ -47,24 +47,20 @@ function checkToken(project) {
     // do nothing when timeToNotify is not reached yet
     if (remainingSeconds > timeToNotify) return;
 
-    // send notice when remainingSeconds is low
-    if (remainingSeconds > 0) {
-      sendNotice(project, remainingSeconds);
-      return;
-    }
+    // read the auto_reload value from synced storage
+    chrome.storage.sync.get({
+      auto_reload: false, // default to false
+    }, function(stored) {
 
-    // token expired
-    // stop sending notice after 2 minutes to stop annoying people
-    if (remainingSeconds > -120) {
-      sendNotice(project, remainingSeconds);
+      // remainingSeconds is getting low
+      if (remainingSeconds > 0) {
+        if (!stored.auto_reload) sendNotice(project, remainingSeconds);
+        return
+      }
 
-      chrome.storage.sync.get({
-        auto_reload: false,
-      }, function(stored) {
-        // auto reload when user specifically asks to
-        if (stored.auto_reload) refreshGA(project);
-      });
-    }
+      // token expired
+      if (stored.auto_reload) refreshGA(project);
+    });
   });
 }
 

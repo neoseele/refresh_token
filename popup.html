@@ -6,10 +6,13 @@
   <script src='js/popup.js'></script>
   <style type="text/css" >
     body {
-      min-width: 300px;
-      max-width: 100%;
-      min-height: 100px;
+      min-width: 350px;
+      min-height: 150px;
+      width: 100%;
     }
+    /*.mdl-list {
+      width: 350px;
+    }*/
     .mdl-list__item .mdl-list__item-primary-content .mdl-list__item-icon {
       margin-right: 12px;
     }
@@ -24,8 +27,8 @@
     }
   </style>
 </head>
-<body>
-  <ul class="demo-list-two mdl-list" id="alarms"></ul>
+<body tabindex="1">
+  <ul class="mdl-list" id="alarms"></ul>
   <button class="mdl-button mdl-js-button mdl-button--accent" id="clear">
     Clear All
   </button>
