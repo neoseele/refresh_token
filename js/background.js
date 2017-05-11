@@ -58,6 +58,11 @@ function checkToken(project) {
         return
       }
 
+      // gave up after the token expired for more than 2 minites
+      if (remainingSeconds > -120) {
+        return
+      }
+      
       // token expired
       if (stored.auto_reload) {
         refreshGA(project);

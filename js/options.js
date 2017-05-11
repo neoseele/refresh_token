@@ -26,15 +26,17 @@ function save_options() {
 // stored in chrome.storage.
 function restore_options() {
   // Use default value for site
-  chrome.storage.sync.get({pantheon_site, ga_site, auto_reload}, function(result) {
+  chrome.storage.sync.get({
+    pantheon_site: 'https://pantheon.corp.google.com/',
+    ga_site: 'https://google-admin.corp.google.com/',
+    auto_reload: false,
+  }, function(result) {
     console.log('result', result);
-    if (!isEmpty(result.pantheon_site)) {
-      document.getElementById('pantheon_site').value = result.pantheon_site;
-    }
-    if (!isEmpty(result.ga_site)) {
-      document.getElementById('ga_site').value = result.ga_site;
-    }
-    if (!isEmpty(result.auto_reload)) {
+
+    document.getElementById('pantheon_site').value = result.pantheon_site;
+    document.getElementById('ga_site').value = result.ga_site;
+
+    if (result.auto_reload) {
       document.getElementById('auto_reload').checked = true;
       document.querySelector('.mdl-js-checkbox').MaterialCheckbox.check()
     }
