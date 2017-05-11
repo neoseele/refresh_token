@@ -1,3 +1,7 @@
+function isEmpty(obj) {
+  return (Object.keys(obj).length == 0);
+}
+
 // Saves options to chrome.storage
 function save_options() {
   const pantheon_site = document.getElementById('pantheon_site').value;
@@ -23,13 +27,14 @@ function save_options() {
 function restore_options() {
   // Use default value for site
   chrome.storage.sync.get({pantheon_site, ga_site, auto_reload}, function(result) {
-    if (result.pantheon_site) {
+    console.log('result', result);
+    if (!isEmpty(result.pantheon_site)) {
       document.getElementById('pantheon_site').value = result.pantheon_site;
     }
-    if (result.ga_site) {
+    if (!isEmpty(result.ga_site)) {
       document.getElementById('ga_site').value = result.ga_site;
     }
-    if (result.auto_reload) {
+    if (!isEmpty(result.auto_reload)) {
       document.getElementById('auto_reload').checked = true;
       document.querySelector('.mdl-js-checkbox').MaterialCheckbox.check()
     }
