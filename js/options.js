@@ -27,7 +27,6 @@ function restore_options() {
     document.getElementById('ga_site').value = result.ga_site;
     console.log('auto_reload saved', result.auto_reload);
     if (result.auto_reload) {
-      console.log('test');
       document.getElementById('auto_reload').checked = true;
       document.querySelector('.mdl-js-checkbox').MaterialCheckbox.check()
     }

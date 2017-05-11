@@ -59,18 +59,22 @@ function checkToken(project) {
       }
 
       // token expired
-      if (stored.auto_reload) refreshGA(project);
+      if (stored.auto_reload) {
+        refreshGA(project);
+        sendNotice(project, remainingSeconds, 'Token expred, Google Admin page is refreshed');
+      }
     });
   });
 }
 
-function sendNotice(project, remainingSeconds) {
+function sendNotice(project, remainingSeconds, message) {
     var msg = 'Token is about to expire ('+secondsToDate(remainingSeconds)+')';
+
     if (remainingSeconds < 0) {
       msg = 'Token expred';
     }
 
-    const opt = {
+    var opt = {
       type: 'basic',
       title: project.toUpperCase(),
       message: msg,
@@ -79,6 +83,13 @@ function sendNotice(project, remainingSeconds) {
       }],
       iconUrl: "image/notice.png",
     }
+
+    // override things when extra message is passed in
+    if (message) {
+      opt.message = message;
+      opt.buttons = [];
+    }
+
     chrome.notifications.create(project, opt);
     setTimeout(function() {
       chrome.notifications.clear(project, function(wasCleared){});
