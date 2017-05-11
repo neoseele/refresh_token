@@ -23,9 +23,12 @@ function save_options() {
 function restore_options() {
   // Use default value for site
   chrome.storage.sync.get({pantheon_site, ga_site, auto_reload}, function(result) {
-    document.getElementById('pantheon_site').value = result.pantheon_site;
-    document.getElementById('ga_site').value = result.ga_site;
-    console.log('auto_reload saved', result.auto_reload);
+    if (result.pantheon_site) {
+      document.getElementById('pantheon_site').value = result.pantheon_site;
+    }
+    if (result.ga_site) {
+      document.getElementById('ga_site').value = result.ga_site;
+    }
     if (result.auto_reload) {
       document.getElementById('auto_reload').checked = true;
       document.querySelector('.mdl-js-checkbox').MaterialCheckbox.check()
