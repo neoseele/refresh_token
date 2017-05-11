@@ -18,7 +18,7 @@ function secondsToDate(seconds) {
 
 function findGATab(project, callback) {
   chrome.storage.sync.get({
-    ga_site: 'https://google-admin.corp.google.com',
+    ga_site: 'https://google-admin.corp.google.com/',
   }, function(stored) {
     const ga_site = stored.ga_site;
 
