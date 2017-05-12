@@ -65,7 +65,7 @@ function showAlarms() {
     var secondsLeft = bgPage.secondsLeft(alarm.time);
     spanAlarmDetail.innerText = bgPage.secondsToDate(secondsLeft);
 
-    button0.innerHTML = '<i class="material-icons">cached</i>';
+    button0.innerHTML = '<i class="material-icons">autorenew</i>';
     button0.className = 'mdl-button mdl-js-button mdl-button--icon';
     button0.onclick = (function() {
       const project = alarm.project;

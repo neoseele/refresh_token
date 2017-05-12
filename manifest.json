@@ -1,5 +1,5 @@
 {
-  "name": "Token Refresher",
+  "name": "Refresh Token",
   "description": "Reload tabs with refreshed token",
   "version": "2.0.3",
   "minimum_chrome_version": "16.0.884",
@@ -20,7 +20,9 @@
     ]
   },
   "web_accessible_resources": [
-    "image/notice.png"
+    "image/notice.png",
+    "image/icon_16.png",
+    "image/icon_48.png"
   ],
   "content_scripts": [
     {
@@ -33,6 +35,10 @@
       ]
     }
   ],
+  "icons": {
+    "16": "image/icon_16.png",
+    "48": "image/icon_48.png"
+  },
   "options_ui": {
     "page": "options.html",
     "chrome_style": true
