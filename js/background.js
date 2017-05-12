@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-const timeToExpire = 1800 // 30 minites
-const timeToNotify = 360 // 6 minites
+const timeToExpire = 1800; // 30 minites
+const timeToNotify = 360; // 6 minites
 
 function secondsLeft(time) {
   const now = Date.now();
@@ -55,12 +55,12 @@ function checkToken(project) {
       // remainingSeconds is getting low
       if (remainingSeconds > 0) {
         if (!stored.auto_reload) sendNotice(project, remainingSeconds);
-        return
+        return;
       }
 
       // gave up after the token is expired for more than 2 minites
       if (remainingSeconds > -120) {
-        return
+        return;
       }
 
       // token expired

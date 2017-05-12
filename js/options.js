@@ -1,7 +1,3 @@
-function isEmpty(obj) {
-  return (Object.keys(obj).length == 0);
-}
-
 // Saves options to chrome.storage
 function save_options() {
   const pantheon_site = document.getElementById('pantheon_site').value;
