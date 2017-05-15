@@ -34,7 +34,7 @@ function restore_options() {
 
     if (result.auto_reload) {
       document.getElementById('auto_reload').checked = true;
-      document.querySelector('.mdl-js-checkbox').MaterialCheckbox.check()
+      document.querySelector('.mdl-js-checkbox').MaterialCheckbox.check();
     }
   });
 }
