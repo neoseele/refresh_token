@@ -4,6 +4,8 @@
 
 const timeToExpire = 1800; // 30 minites
 const timeToNotify = 360; // 6 minites
+const timeToReload = 180; // 3 minutes
+const timeToIgnore = -120; // -2 minutes
 
 function secondsLeft(time) {
   const now = Date.now();
@@ -53,13 +55,13 @@ function checkToken(project) {
     }, function(stored) {
 
       // remainingSeconds is getting low
-      if (remainingSeconds > 0) {
+      if (remainingSeconds > timeToReload) {
         if (!stored.auto_reload) sendNotice(project, remainingSeconds);
         return;
       }
 
       // gave up after the token is expired for more than 2 minites
-      if (remainingSeconds > -120) {
+      if (remainingSeconds > timeToIgnore) {
         return;
       }
 
