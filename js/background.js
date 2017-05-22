@@ -45,6 +45,7 @@ function checkToken(project) {
     // console.log('result', result);
     const alarm = result[project];
     const remainingSeconds = secondsLeft(alarm.time);
+    console.log('remainingSeconds', remainingSeconds);
 
     // do nothing when timeToNotify is not reached yet
     if (remainingSeconds > timeToNotify) return;
@@ -61,7 +62,7 @@ function checkToken(project) {
       }
 
       // gave up after the token is expired for more than 2 minites
-      if (remainingSeconds > timeToIgnore) {
+      if (remainingSeconds < timeToIgnore) {
         return;
       }
 
