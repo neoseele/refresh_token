@@ -1,5 +1,6 @@
 {
   "name": "Refresh Token",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv+i/FGLF/2fYNW4EVu/zAXws9tUzQfnmMJQmgRozC1uDuC8/h8Kku+/TiC01yVePody1i+KuyNIVb7Hh6+G6RDtDRdDzCDlk/Ebn7SpT+B0nmWz83tzIj652OH78B7Z40oaeFOyczYkIpiqLgqeGM/gSfx5hyhSeJU5zn56Eja53GFwV5MTE3VTt2VhOiSbVm7bpTg5CoNMhqqaWtB3dnZoUWGJQG5X/ttozCfVVeY9LPj+LsDgD4A3eLnpOUT0vHN2lFOCHrbxPLOR5lQRyKwtUxiAFglpTQwiPpWv6kJKrj2lfLyW2MYT6o1eCVTp0hKblEPEJU9wPYZ/hoQx7jwIDAQAB",
   "description": "Reload tabs with refreshed token",
   "version": "2.0.3",
   "minimum_chrome_version": "16.0.884",
