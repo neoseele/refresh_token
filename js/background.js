@@ -24,15 +24,19 @@ function findGATab(project, callback) {
   }, function(stored) {
     const ga_site = stored.ga_site;
 
-    chrome.tabs.query({
-        url: ga_site+'*'+project+'*',
-        // currentWindow: true
-      }, function (tabs) {
-      // should be only one of these found
-      if ((tabs.length > 0) && (typeof callback === 'function')) {
-        console.log('tab', tabs[0]);
-        callback(tabs[0]);
-      }
+    chrome.storage.local.get(project, function(result) {
+      const alarm = result[project];
+
+      chrome.tabs.query({
+          url: ga_site+'*'+alarm.project_number+'*',
+          // currentWindow: true
+        }, function (tabs) {
+        // should be only one of these found
+        if ((tabs.length > 0) && (typeof callback === 'function')) {
+          console.log('tab', tabs[0]);
+          callback(tabs[0]);
+        }
+      });
     });
   });
 }
@@ -119,16 +123,16 @@ function refreshGA(project) {
 }
 
 function createAlarm(payload) {
-  const project = payload.project;
+  const name = payload.project;
   const token = payload.token;
 
   chrome.storage.local.set({
-    [project]: payload // [] is used so project like 'nmiu-play' can be evaluated as property
+    [name]: payload // [] is used so project like 'nmiu-play' can be evaluated as property
   }, function() {
     // reload matched pantheon tabs
-    refreshToken(project, token);
+    refreshToken(name, token);
     // start the alarm
-    chrome.alarms.create(project, {
+    chrome.alarms.create(name, {
       delayInMinutes: 0.1, periodInMinutes: 2
     });
   });
@@ -195,14 +199,4 @@ chrome.runtime.onMessage.addListener(function(req) {
 chrome.alarms.onAlarm.addListener(function(alarm) {
   console.log('Got an alarm!', alarm);
   checkToken(alarm.name);
-});
-
-chrome.notifications.onClicked.addListener(function(project) {
-  console.log('Notification: '+project+' is clicked!');
-});
-
-chrome.notifications.onButtonClicked.addListener(function(project, buttonIndex) {
-  console.log('Notification button: '+project+' '+buttonIndex+' is clicked!');
-  openGA(project);
-  refreshGA(project);
 });

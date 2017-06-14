@@ -1,5 +1,8 @@
-function getDomWithText(nodeSelector, innerText) {
-  var nodes = document.querySelectorAll(nodeSelector);
+const search_txt_1 = "Cloud Project > Cloud Project Inspection";
+const search_txt_2 = "Open Developers Console now";
+
+function getDomWithText(nodeSelector, innerText, dom=document) {
+  var nodes = dom.querySelectorAll(nodeSelector);
   for (i=0; i<nodes.length; i++) {
     var node = nodes[i];
     if (node.innerText.toLowerCase() == innerText) {
@@ -8,75 +11,62 @@ function getDomWithText(nodeSelector, innerText) {
   }
 }
 
-function googlAdminPage() {
-  var epoch_ms = Date.now();
-  var dom1 = "div.admin-zippy-group-header.goog-zippy-header.goog-zippy-";
-  var dom2 = "div.admin-zippy-group-child-header.goog-zippy-header.goog-zippy-";
+// find the project id
+const wiz = document.querySelectorAll('div.cWbHvc > c-wiz')[0];
+console.log('wiz', wiz);
 
-  if (!getDomWithText(dom1+"expanded", "project overview")) {
-    console.log("...expanding Project overview zippy");
-    getDomWithText(dom1+"collapsed", "project overview").click();
-  }
+wiz.addEventListener(
+  "DOMNodeInserted", function() {
+    const spans = wiz.querySelectorAll('div.XqxzQb > div.IuoGAf > span');
+    console.log('spans', spans);
 
-  if(!getDomWithText(dom2+"expanded", "cloud project inspection")) {
-    console.log("...expanding Cloud Project inspection zippy");
-    getDomWithText(dom2+"collapsed", "cloud project inspection").click();
-    // Refresh the current epoch
-    epoch_ms = Date.now();
-  }
+    if (!spans) {
+      console.log("Failed to extract project id", "error");
+      return;
+    }
 
-  console.log("...examining inserted DOM nodes");
+    const project_id = spans[0].innerText;
+    console.log('...found project id', project_id);
 
-  document.getElementById("accountoverview_123").addEventListener(
-    "DOMNodeInserted", function() {
+    const span = getDomWithText("div.GlDWyd > span.fuMCCb > span", search_txt_1.toLowerCase());
+    console.log('span', span);
+    span.click();
 
-      var link = getDomWithText("#accountoverview_123 a", "open developers console");
-      // If the link hasn't yet been inserted, return immediately
-      if (!link)
-        return;
+    const div = document.querySelectorAll('[data-title="'+search_txt_1+'"]', )[0];
+    div.addEventListener(
+      "DOMNodeInserted", function() {
+        const link = getDomWithText("a.L1R4Ff", search_txt_2.toLowerCase(), div);
+        console.log('link', link);
 
-      // link.origin = https://google-admin.corp.google.com
-      // link.path = /accountoverview?
-      // console.log('search', link.search);
-      var match = link.search.match(/project=([^&]+)&token=([^&]+)/);
-      if (!match) {
-        console.log("Failed to extract project/token from URL", "error");
-        return;
-      }
+        // If the link hasn't yet been inserted, return immediately
+        if (!link)
+          return;
 
-      var project_id = match[1];
-      var token = match[2];
-
-      console.log("...found token for project " + project_id);
-      console.log("...token " + token);
-      console.log("...getting token expiration");
-
-      var expiry_ms = 0;
-      var nodes = document.querySelectorAll("#accountoverview_123 span");
-      for (i=0; i<nodes.length; i++) {
-        var node = nodes[i];
-        var results = node.innerText.match(/minutes left until token expiration: (\d+)/i);
-        if (results) {
-          expiry_ms = parseInt(results[1]) * 60 * 1000;
-          break;
+        const match = link.search.match(/project=([^&]+)&token=([^&]+)/);
+        if (!match) {
+          console.log("Failed to extract project/token from URL", "error");
+          return;
         }
-      }
-      console.log('expiry_ms', expiry_ms);
 
-      if (expiry_ms) {
-        // send message when expiry_ms > 0
+        const project_number = match[1];
+        const token = match[2];
+
+        console.log("...found token for project number", project_number);
+        console.log("...token", token);
+
         chrome.runtime.sendMessage({
           action: 'create_alarm',
           payload: {
             'ga_link': window.location.href,
             'token_link': link,
             'project': project_id,
+            'project_number': project_number,
             'token': token,
             'time': Date.now()
           }
         });
       }
-  });
-}
+    );
 
-googlAdminPage();
+  }
+)
