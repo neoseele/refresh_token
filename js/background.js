@@ -31,6 +31,10 @@ function findGATab(project, callback) {
           url: ga_site+'*'+alarm.project_number+'*',
           // currentWindow: true
         }, function (tabs) {
+        // clear the alarm if no matching GA page found
+        if (tabs.length == 0) {
+          clearAlarm(project);
+        }
         // should be only one of these found
         if ((tabs.length > 0) && (typeof callback === 'function')) {
           console.log('tab', tabs[0]);
