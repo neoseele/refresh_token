@@ -12,7 +12,7 @@ function getDomWithText(nodeSelector, innerText, dom=document) {
 }
 
 // find the project id
-const wiz = document.querySelectorAll('div.cWbHvc > c-wiz')[0];
+const wiz = document.querySelectorAll('c-wiz.sI02lb')[0];
 console.log('wiz', wiz);
 
 wiz.addEventListener(
