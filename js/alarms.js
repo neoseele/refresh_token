@@ -1,74 +1,96 @@
-const search_txt_1 = "Cloud Project > Cloud Project Inspection";
-const search_txt_2 = "Open Developers Console now";
+// Copyright 2017 Google Inc. All Rights Reserved
 
-function getDomWithText(nodeSelector, innerText, dom=document) {
-  var nodes = dom.querySelectorAll(nodeSelector);
-  for (i=0; i<nodes.length; i++) {
-    var node = nodes[i];
+/**
+ * find the dom node by selector and inner text
+ * @param {string} nodeSelector:
+ * @param {string} innerText: the stuff between the tags
+ * @param {object=} dom: object to search from
+ * @return {object} return the found node
+ */
+function getDomWithText(nodeSelector, innerText, dom = document) {
+  const nodes = dom.querySelectorAll(nodeSelector);
+  let node = null;
+
+  for (let i = 0; i < nodes.length; i++) {
+    node = nodes[i];
     if (node.innerText.toLowerCase() == innerText) {
       return node;
     }
   }
 }
 
-document.addEventListener("DOMNodeInserted", function(event) {
-  // find the project id
-  const wiz = document.querySelectorAll('div.cWbHvc > c-wiz.sI02lb');
-  // console.log('wiz', wiz);
+/**
+ * search text for finding the project span
+ */
+const searchTextForProject = 'Cloud Project > Cloud Project Inspection';
 
-  // wiz not found yet
-  if (!wiz[0]) {
-    return;
-  }
+/**
+ * fetch the current url
+ * which will be used to parse the project number
+ */
+const url = window.location;
 
-  const spans = wiz[0].querySelectorAll('div.XqxzQb > div.IuoGAf > span');
-  // console.log('spans', spans);
+/**
+ * fetch project number from url
+ *
+ * url.pathname.split('/') =>
+ * ["", "v2", "overview", "cloud-project", "<project number>"]
+ *
+ */
+const segments = url.pathname.split('/');
+const projectNumber = segments[segments.length - 1];
+
+
+document.addEventListener('DOMNodeInserted', function() {
+  const span = getDomWithText('span', projectNumber);
 
   // spans not found yet
-  if (!spans[0]) {
-    return;
-  }
+  console.log('span', span);
+  if (!span) return;
 
-  // project id found
-  const project_id = spans[0].innerText;
-  console.log('...found project id', project_id);
+  // find the project id
+  const projectIdDiv = span.parentElement.parentElement.nextSibling;
+  const projectId = projectIdDiv.getElementsByTagName('span')[0].innerText;
+  console.log('...found project id', projectId);
 
-  const span = getDomWithText("div.GlDWyd > span.fuMCCb > span", search_txt_1.toLowerCase());
-  // console.log('span', span);
-  span.click();
+  const projectSpan =
+      getDomWithText('span', searchTextForProject.toLowerCase());
+  // console.log('projectSpan', projectSpan);
 
-  const div = document.querySelectorAll('[data-title="'+search_txt_1+'"]')[0];
-  div.addEventListener(
-    "DOMNodeInserted", function() {
-      const link = getDomWithText("a.L1R4Ff", search_txt_2.toLowerCase(), div);
-      console.log('link', link);
+  if (!projectSpan) return;
 
-      // If the link hasn't yet been inserted, return immediately
-      if (!link) {
-        return;
+  // click the span to trigger the AJAX calls
+  projectSpan.click();
+
+  const div = document.querySelectorAll(
+      '[data-title="' + searchTextForProject + '"]')[0];
+
+  div.addEventListener('DOMNodeInserted', function() {
+    const links = div.querySelectorAll('a');
+    // console.log('links', links);
+
+    // If the link hasn't yet been inserted, return immediately
+    if (!links[0]) return;
+
+    const match = links[0].search.match(/project=([^&]+)&token=([^&]+)/);
+    if (!match) return;
+
+    // const projectNumber = match[1];
+    const token = match[2];
+
+    console.log('...found token for project number', projectNumber);
+    console.log('...token', token);
+
+    chrome.runtime.sendMessage({
+      action: 'create_alarm',
+      payload: {
+        'ga_link': window.location.href,
+        'token_link': links[0],
+        'project': projectId,
+        'project_number': projectNumber,
+        'token': token,
+        'time': Date.now()
       }
-
-      const match = link.search.match(/project=([^&]+)&token=([^&]+)/);
-      if (!match) {
-        return;
-      }
-
-      const project_number = match[1];
-      const token = match[2];
-
-      console.log("...found token for project number", project_number);
-      console.log("...token", token);
-
-      chrome.runtime.sendMessage({
-        action: 'create_alarm',
-        payload: {
-          'ga_link': window.location.href,
-          'token_link': link,
-          'project': project_id,
-          'project_number': project_number,
-          'token': token,
-          'time': Date.now()
-        }
-      });
+    });
   });
 });

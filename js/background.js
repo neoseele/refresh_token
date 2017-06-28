@@ -1,117 +1,157 @@
-// Copyright (c) 2012 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+// Copyright 2017 Google Inc. All Rights Reserved
 
-const timeToExpire = 1800; // 30 minites
-const timeToNotify = 360; // 6 minites
-const timeToReload = 180; // 3 minutes
-const timeToIgnore = -120; // -2 minutes
+/**
+ * @fileoverview Background page used for the chrome extension
+ * @author nmiu@google.com (Neil Miao)
+ */
 
+/**
+ * Token expired after 30 minutes
+ */
+const timeToExpire = 1800;  // 30 minites
+
+/**
+ * Notify when token is going to expired in 6 minutes
+ */
+const timeToNotify = 360;  // 6 minites
+
+/**
+ * How many seconds left until token expired
+ * @param {number} time: in milliseonds
+ * @return {number} number of seconds before token expired
+ */
 function secondsLeft(time) {
   const now = Date.now();
   const seconds = timeToExpire - ((now - time) / 1000);
   return Math.round(seconds);
 }
 
+/**
+ * convert seconds to human readable string
+ * @param {number} seconds
+ * @return {string} human readable form of the seconds
+ */
 function secondsToDate(seconds) {
-  const date = new Date(seconds * 1000).toISOString().substr(11, 8);
-  return date;
+  return new Date(seconds * 1000).toISOString().substr(11, 8);
 }
 
+/**
+ * find the Google Admin tab by project id, and do something about it
+ * @param {string} project: project id
+ * @param {function()} callback: callback function when the tab is found
+ */
 function findGATab(project, callback) {
-  chrome.storage.sync.get({
-    ga_site: 'https://google-admin.corp.google.com/',
-  }, function(stored) {
-    const ga_site = stored.ga_site;
+  chrome.storage.sync.get(
+      {
+        ga_site: 'https://google-admin.corp.google.com/',
+      },
+      function(stored) {
+        const gaSite = stored.ga_site;
 
-    chrome.storage.local.get(project, function(result) {
-      const alarm = result[project];
+        chrome.storage.local.get(project, function(result) {
+          const alarm = result[project];
 
-      chrome.tabs.query({
-          url: ga_site+'*'+alarm.project_number+'*',
-          // currentWindow: true
-        }, function (tabs) {
-        // clear the alarm if no matching GA page found
-        if (tabs.length == 0) {
-          clearAlarm(project);
-        }
-        // should be only one of these found
-        if ((tabs.length > 0) && (typeof callback === 'function')) {
-          console.log('tab', tabs[0]);
-          callback(tabs[0]);
-        }
+          chrome.tabs.query(
+              {
+                url: gaSite + '*' + alarm.project_number + '*',
+              },
+              function(tabs) {
+                // should be only one of these found
+                if ((tabs.length > 0) && (typeof callback === 'function')) {
+                  console.log('tab', tabs[0]);
+                  callback(tabs[0]);
+                }
+              });
+        });
       });
-    });
-  });
 }
 
+/**
+ * check if the token of a given project is about to expired
+ * and do things accordingly
+ * @param {string} project: project id
+ */
 function checkToken(project) {
   console.log('checkToken', project);
 
   // get the alarm details from local storage
   chrome.storage.local.get(project, function(result) {
     // console.log('result', result);
-    const alarm = result[project];
-    const remainingSeconds = secondsLeft(alarm.time);
-    console.log('remainingSeconds', remainingSeconds);
+    let alarm = result[project];
+    let remainingSeconds = secondsLeft(alarm.time);
 
     // do nothing when timeToNotify is not reached yet
     if (remainingSeconds > timeToNotify) return;
 
     // read the auto_reload value from synced storage
-    chrome.storage.sync.get({
-      auto_reload: false, // default to false
-    }, function(stored) {
+    chrome.storage.sync.get(
+        {
+          auto_reload: false,  // default to false
+        },
+        function(stored) {
 
-      // remainingSeconds is getting low
-      if (remainingSeconds > timeToReload) {
-        if (!stored.auto_reload) sendNotice(project, remainingSeconds);
-        return;
-      }
+          // remainingSeconds is getting low
+          if (remainingSeconds > 0) {
+            if (!stored.auto_reload) sendNotice(project, remainingSeconds);
+            return;
+          }
 
-      // gave up after the token is expired for more than 2 minites
-      if (remainingSeconds < timeToIgnore) {
-        return;
-      }
+          // gave up after the token is expired for more than 2 minites
+          if (remainingSeconds > -120) {
+            return;
+          }
 
-      // token expired
-      if (stored.auto_reload) {
-        refreshGA(project);
-        sendNotice(project, remainingSeconds, 'Token expred, Google Admin page is refreshed');
-      }
-    });
+          // token expired
+          if (stored.auto_reload) {
+            refreshGA(project);
+            sendNotice(
+                project, remainingSeconds,
+                'Token expred, Google Admin page is refreshed');
+          }
+        });
   });
 }
 
+/**
+ * send chrome notice
+ * @param {string} project: project id
+ * @param {number} remainingSeconds: seconds until the token expired
+ * @param {string} message: extra messages to notify user(optional)
+ */
 function sendNotice(project, remainingSeconds, message) {
-    var msg = 'Token is about to expire ('+secondsToDate(remainingSeconds)+')';
+  let msg =
+      'Token is about to expire (' + secondsToDate(remainingSeconds) + ')';
 
-    if (remainingSeconds < 0) {
-      msg = 'Token expred';
-    }
+  if (remainingSeconds < 0) {
+    msg = 'Token expred';
+  }
 
-    var opt = {
-      type: 'basic',
-      title: project.toUpperCase(),
-      message: msg,
-      buttons: [{
-        title: "Refresh Now",
-      }],
-      iconUrl: "image/notice.png",
-    }
+  let opt = {
+    type: 'basic',
+    title: project.toUpperCase(),
+    message: msg,
+    buttons: [{
+      title: 'Refresh Now',
+    }],
+    iconUrl: 'image/notice.png',
+  };
 
-    // override things when extra message is passed in
-    if (message) {
-      opt.message = message;
-      opt.buttons = [];
-    }
+  // override things when extra message is passed in
+  if (message) {
+    opt.message = message;
+    opt.buttons = [];
+  }
 
-    chrome.notifications.create(project, opt);
-    setTimeout(function() {
-      chrome.notifications.clear(project, function(wasCleared){});
-    }, 5000);
+  chrome.notifications.create(project, opt);
+  setTimeout(function() {
+    chrome.notifications.clear(project, function(wasCleared) {});
+  }, 5000);
 }
 
+/**
+ * find the project's Google Admin tab and switch to it
+ * @param {string} project: project id
+ */
 function openGA(project) {
   console.log('openGA', project);
   findGATab(project, function(tab) {
@@ -119,6 +159,10 @@ function openGA(project) {
   });
 }
 
+/**
+ * find the project's Google Admin tab and refresh it
+ * @param {string} project: project id
+ */
 function refreshGA(project) {
   findGATab(project, function(tab) {
     console.log('refreshGA', tab);
@@ -126,28 +170,39 @@ function refreshGA(project) {
   });
 }
 
+/**
+ * create a chrome alarm with the given payload
+ * @param {object} payload: the payload consist of project id, token and some urls
+ */
 function createAlarm(payload) {
   const name = payload.project;
   const token = payload.token;
 
-  chrome.storage.local.set({
-    [name]: payload // [] is used so project like 'nmiu-play' can be evaluated as property
-  }, function() {
-    // reload matched pantheon tabs
-    refreshToken(name, token);
-    // start the alarm
-    chrome.alarms.create(name, {
-      delayInMinutes: 0.1, periodInMinutes: 2
-    });
-  });
-
+  chrome.storage.local.set(
+      {
+        [name]: payload  // [] is used so name like 'nmiu-play' can be
+                         // evaluated as property
+      },
+      function() {
+        // reload matched pantheon tabs
+        refreshToken(name, token);
+        // start the alarm
+        chrome.alarms.create(name, {delayInMinutes: 0.1, periodInMinutes: 2});
+      });
 }
 
+/**
+ * clear an alarm and delete it from local storage
+ * @param {string} name: alarm name
+ */
 function clearAlarm(name) {
   chrome.alarms.clear(name);
   chrome.storage.local.remove(name);
 }
 
+/**
+ * clear all alarms
+ */
 function clearAllAlarms() {
   chrome.alarms.getAll(function(alarms) {
     console.log('alarms', alarms);
@@ -157,50 +212,54 @@ function clearAllAlarms() {
   });
 }
 
-function refreshToken(project, token) {
-  chrome.storage.sync.get({
-    pantheon_site: 'https://pantheon.corp.google.com/',
-  }, function(stored) {
+/**
+ * reload the pantheon tabs when the token is refreshed
+ * @param {string} project: project id
+ * @param {string} newtoken: the new token
+ */
+function refreshToken(project, newtoken) {
+  chrome.storage.sync.get(
+      {
+        pantheon_site: 'https://pantheon.corp.google.com/view_custom_ui',
+      },
+      function(stored) {
 
-    const pantheon_site = stored.pantheon_site;
-    // console.log('pantheon_site', pantheon_site);
+        const pantheon_site = stored.pantheon_site;
 
-    // loop through all tabs to check existing pantheon pages
-    chrome.tabs.query({
-      url: pantheon_site+'*'+project+'*',
-      // currentWindow: true
-    }, function (tabs) {
-      tabs.forEach(function(tab, index) {
-        const tab_match = tab.url.match(/token=([^&/]+)/i);
-        // console.log('tab_url', tab.url);
+        // loop through all tabs to check existing pantheon pages
+        chrome.tabs.query(
+            {
+              url: pantheon_site + '*' + project + '*',
+              // currentWindow: true
+            },
+            function(tabs) {
+              tabs.forEach(function(tab, index) {
+                const tab_match = tab.url.match(/token=([^&/]+)/i);
 
-        if (tab_match) {
-          // console.log('tab_match', tab_match);
-          const tab_token = tab_match[1];
-          console.log('tab_token', tab_token);
+                if (tab_match) {
+                  const tab_token = tab_match[1];
 
-          if (tab_token != token) {
-            // reload the tab with new token
-            chrome.tabs.update(tab.id, {
-              url: tab.url.replace(tab_token, token)
+                  if (tab_token != newtoken) {
+                    // reload the tab with new token
+                    chrome.tabs.update(
+                        tab.id, {url: tab.url.replace(tab_token, newtoken)});
+                  }
+                }
+              });
             });
-          }
-        }
       });
-    });
-  });
 }
 
-// captured the alarm from the source page and save it in local storage
+// capture the alarm from the source page and save it in local storage
 chrome.runtime.onMessage.addListener(function(req) {
-  console.log('req', req);
 
   if (req.action == 'create_alarm') {
     createAlarm(req.payload);
   }
 });
 
-chrome.alarms.onAlarm.addListener(function(alarm) {
-  console.log('Got an alarm!', alarm);
-  checkToken(alarm.name);
+// when an alarm has elapsed
+chrome.alarms.onAlarm.addListener(function(alarm_msg) {
+  console.log('Got an alarm!', alarm_msg);
+  checkToken(alarm_msg.name);
 });

@@ -1,16 +1,18 @@
-// Saves options to chrome.storage
+// Copyright 2017 Google Inc. All Rights Reserved
+
+/**
+ * Saves options to chrome.storage
+ */
 function save_options() {
-  const pantheon_site = document.getElementById('pantheon_site').value;
-  const ga_site = document.getElementById('ga_site').value;
-  const auto_reload = document.getElementById('auto_reload').checked;
-  console.log('auto_reload', auto_reload);
+  const pantheonSite = document.getElementById('pantheon_site').value;
+  const gaSite = document.getElementById('ga_site').value;
   chrome.storage.sync.set({
-    pantheon_site: pantheon_site,
-    ga_site: ga_site,
-    auto_reload: auto_reload,
+    pantheon_site: pantheonSite,
+    ga_site: gaSite,
+    auto_reload: false,
   }, function() {
     // Update status to let user know options were saved.
-    const status = document.getElementById('status');
+    let status = document.getElementById('status');
     status.textContent = 'Options saved';
     setTimeout(function() {
       status.textContent = '';
@@ -18,8 +20,10 @@ function save_options() {
   });
 }
 
-// Restores select box and checkbox state using the preferences
-// stored in chrome.storage.
+/**
+ * Restores select box and checkbox state using the preferences
+ * stored in chrome.storage
+ */
 function restore_options() {
   // Use default value for site
   chrome.storage.sync.get({
@@ -28,15 +32,10 @@ function restore_options() {
     auto_reload: false,
   }, function(result) {
     console.log('result', result);
-
     document.getElementById('pantheon_site').value = result.pantheon_site;
     document.getElementById('ga_site').value = result.ga_site;
-
-    if (result.auto_reload) {
-      document.getElementById('auto_reload').checked = true;
-      document.querySelector('.mdl-js-checkbox').MaterialCheckbox.check();
-    }
   });
 }
+
 document.addEventListener('DOMContentLoaded', restore_options);
 document.getElementById('save').addEventListener('click', save_options);
