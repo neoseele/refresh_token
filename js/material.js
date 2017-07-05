@@ -11,27 +11,26 @@
     var vendors = ['ms', 'moz', 'webkit', 'o'];
     for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
         window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
-        window.cancelAnimationFrame = window[vendors[x]+'CancelAnimationFrame']
+        window.cancelAnimationFrame = window[vendors[x]+'CancelAnimationFrame'] 
                                    || window[vendors[x]+'CancelRequestAnimationFrame'];
     }
-
+ 
     if (!window.requestAnimationFrame)
         window.requestAnimationFrame = function(callback, element) {
             var currTime = new Date().getTime();
             var timeToCall = Math.max(0, 16 - (currTime - lastTime));
-            var id = window.setTimeout(function() { callback(currTime + timeToCall); },
+            var id = window.setTimeout(function() { callback(currTime + timeToCall); }, 
               timeToCall);
             lastTime = currTime + timeToCall;
             return id;
         };
-
+ 
     if (!window.cancelAnimationFrame)
         window.cancelAnimationFrame = function(id) {
             clearTimeout(id);
         };
 }());
 
-//third_party/javascript/material_design_lite/mdlComponentHandler.js
 /**
  * @license
  * Copyright 2015 Google Inc. All Rights Reserved.
@@ -508,7 +507,6 @@ componentHandler['registerUpgradedCallback'] =
     componentHandler.registerUpgradedCallback;
 componentHandler['register'] = componentHandler.register;
 componentHandler['downgradeElements'] = componentHandler.downgradeElements;
-window.componentHandler = componentHandler;
 window['componentHandler'] = componentHandler;
 
 window.addEventListener('load', function() {
@@ -536,7 +534,6 @@ window.addEventListener('load', function() {
   }
 });
 
-//third_party/javascript/material_design_lite/button/button.js
 /**
  * @license
  * Copyright 2015 Google Inc. All Rights Reserved.
@@ -661,7 +658,6 @@ window.addEventListener('load', function() {
   });
 })();
 
-//third_party/javascript/material_design_lite/checkbox/checkbox.js
 /**
  * @license
  * Copyright 2015 Google Inc. All Rights Reserved.
@@ -932,7 +928,6 @@ window.addEventListener('load', function() {
   });
 })();
 
-//third_party/javascript/material_design_lite/icon-toggle/icon-toggle.js
 /**
  * @license
  * Copyright 2015 Google Inc. All Rights Reserved.
@@ -1189,7 +1184,6 @@ window.addEventListener('load', function() {
   });
 })();
 
-//third_party/javascript/material_design_lite/menu/menu.js
 /**
  * @license
  * Copyright 2015 Google Inc. All Rights Reserved.
@@ -1673,7 +1667,6 @@ window.addEventListener('load', function() {
   });
 })();
 
-//third_party/javascript/material_design_lite/progress/progress.js
 /**
  * @license
  * Copyright 2015 Google Inc. All Rights Reserved.
@@ -1798,7 +1791,6 @@ window.addEventListener('load', function() {
   });
 })();
 
-//third_party/javascript/material_design_lite/radio/radio.js
 /**
  * @license
  * Copyright 2015 Google Inc. All Rights Reserved.
@@ -2081,7 +2073,6 @@ window.addEventListener('load', function() {
   });
 })();
 
-//third_party/javascript/material_design_lite/slider/slider.js
 /**
  * @license
  * Copyright 2015 Google Inc. All Rights Reserved.
@@ -2327,7 +2318,6 @@ window.addEventListener('load', function() {
   });
 })();
 
-//third_party/javascript/material_design_lite/snackbar/snackbar.js
 /**
  * @license
  * Copyright 2015 Google Inc. All Rights Reserved.
@@ -2519,7 +2509,6 @@ window.addEventListener('load', function() {
 
 })();
 
-//third_party/javascript/material_design_lite/spinner/spinner.js
 /**
  * @license
  * Copyright 2015 Google Inc. All Rights Reserved.
@@ -2668,7 +2657,6 @@ window.addEventListener('load', function() {
   });
 })();
 
-//third_party/javascript/material_design_lite/switch/switch.js
 /**
  * @license
  * Copyright 2015 Google Inc. All Rights Reserved.
@@ -2943,7 +2931,6 @@ window.addEventListener('load', function() {
   });
 })();
 
-//third_party/javascript/material_design_lite/tabs/tabs.js
 /**
  * @license
  * Copyright 2015 Google Inc. All Rights Reserved.
@@ -3109,7 +3096,6 @@ window.addEventListener('load', function() {
   });
 })();
 
-//third_party/javascript/material_design_lite/textfield/textfield.js
 /**
  * @license
  * Copyright 2015 Google Inc. All Rights Reserved.
@@ -3395,7 +3381,6 @@ window.addEventListener('load', function() {
   });
 })();
 
-//third_party/javascript/material_design_lite/tooltip/tooltip.js
 /**
  * @license
  * Copyright 2015 Google Inc. All Rights Reserved.
@@ -3551,7 +3536,6 @@ window.addEventListener('load', function() {
   });
 })();
 
-//third_party/javascript/material_design_lite/data-table/data-table.js
 /**
  * @license
  * Copyright 2015 Google Inc. All Rights Reserved.
@@ -3730,7 +3714,6 @@ window.addEventListener('load', function() {
   });
 })();
 
-//third_party/javascript/material_design_lite/layout/layout.js
 /**
  * @license
  * Copyright 2015 Google Inc. All Rights Reserved.
@@ -4306,7 +4289,6 @@ window.addEventListener('load', function() {
   });
 })();
 
-//third_party/javascript/material_design_lite/ripple/ripple.js
 /**
  * @license
  * Copyright 2015 Google Inc. All Rights Reserved.
@@ -4567,3 +4549,4 @@ window.addEventListener('load', function() {
     widget: false
   });
 })();
+

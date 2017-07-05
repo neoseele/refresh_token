@@ -1,5 +1,3 @@
-// Copyright 2017 Google Inc. All Rights Reserved
-
 /**
  * @fileoverview Background page used for the chrome extension
  * @author nmiu@google.com (Neil Miao)
@@ -77,6 +75,7 @@ function checkToken(project) {
   // get the alarm details from local storage
   chrome.storage.local.get(project, function(result) {
     // console.log('result', result);
+
     let alarm = result[project];
     let remainingSeconds = secondsLeft(alarm.time);
 
@@ -166,7 +165,11 @@ function openGA(project) {
 function refreshGA(project) {
   findGATab(project, function(tab) {
     console.log('refreshGA', tab);
-    chrome.tabs.reload(tab.id);
+    // switch to the GA page
+    chrome.tabs.update(tab.id,  {active: true}, function() {
+      // then reload it
+      chrome.tabs.reload(tab.id);
+    });
   });
 }
 
@@ -220,7 +223,7 @@ function clearAllAlarms() {
 function refreshToken(project, newtoken) {
   chrome.storage.sync.get(
       {
-        pantheon_site: 'https://pantheon.corp.google.com/view_custom_ui',
+        pantheon_site: 'https://pantheon.corp.google.com/',
       },
       function(stored) {
 
@@ -254,6 +257,7 @@ function refreshToken(project, newtoken) {
 chrome.runtime.onMessage.addListener(function(req) {
 
   if (req.action == 'create_alarm') {
+    console.log("Payload", req.payload);
     createAlarm(req.payload);
   }
 });

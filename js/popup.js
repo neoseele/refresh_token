@@ -1,5 +1,3 @@
-// Copyright 2017 Google Inc. All Rights Reserved
-
 /**
  * a place to store all the alarms
  */
@@ -149,7 +147,6 @@ window.onload = function() {
   chrome.storage.local.get(null, function(result) {
     // load the existing alarm payloads
     alarms = Object.values(result);
-    // console.log('alarms', alarms);
     showAlarms();
   });
 };

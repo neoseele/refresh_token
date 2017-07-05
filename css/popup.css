@@ -1,0 +1,21 @@
+body {
+  min-width: 350px;
+  min-height: 150px;
+  width: 100%;
+}
+
+.mdl-list__item .mdl-list__item-primary-content .mdl-list__item-icon {
+  margin-right: 12px;
+}
+
+.mdl-list__item .mdl-list__item-secondary-content {
+  display: inline-block;
+}
+
+.alarm:hover {
+  color: blue;
+}
+
+#clear {
+  display: none;
+}
