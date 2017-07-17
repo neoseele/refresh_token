@@ -4,10 +4,11 @@
 function save_options() {
   const pantheonSite = document.getElementById('pantheon_site').value;
   const gaSite = document.getElementById('ga_site').value;
+  const auto_reload = document.getElementById('auto_reload').checked
   chrome.storage.sync.set({
     pantheon_site: pantheonSite,
     ga_site: gaSite,
-    auto_reload: false,
+    auto_reload: auto_reload,
   }, function() {
     // Update status to let user know options were saved.
     let status = document.getElementById('status');
@@ -32,6 +33,11 @@ function restore_options() {
     console.log('result', result);
     document.getElementById('pantheon_site').value = result.pantheon_site;
     document.getElementById('ga_site').value = result.ga_site;
+
+    if (result.auto_reload) {
+      document.getElementById('auto_reload').checked = true;
+      document.querySelector('.mdl-js-checkbox').MaterialCheckbox.check();
+    }
   });
 }
 
