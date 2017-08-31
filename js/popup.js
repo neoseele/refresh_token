@@ -5,7 +5,6 @@ let alarms = [];
 
 /**
  * a reference to the background page
- * TODO(rmrf) why? Just send a message?
  */
 const bgPage = chrome.extension.getBackgroundPage();
 

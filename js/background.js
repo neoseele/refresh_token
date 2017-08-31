@@ -59,6 +59,11 @@ function findGATab(project, callback) {
                   console.log('tab', tabs[0]);
                   callback(tabs[0]);
                 }
+
+                // discard the alarm if no matching GA page found
+                if (tabs.length == 0) {
+                  clearAlarm(project);
+                }
               });
         });
       });
@@ -266,4 +271,5 @@ chrome.runtime.onMessage.addListener(function(req) {
 chrome.alarms.onAlarm.addListener(function(alarm_msg) {
   console.log('Got an alarm!', alarm_msg);
   checkToken(alarm_msg.name);
+  findGATab(alarm_msg.name);
 });
