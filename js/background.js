@@ -40,33 +40,35 @@ function secondsToDate(seconds) {
  */
 function findGATab(project, callback) {
   chrome.storage.sync.get(
-      {
-        ga_site: 'https://google-admin.corp.google.com/',
-      },
-      function(stored) {
-        const gaSite = stored.ga_site;
+    {
+      ga_site: 'https://google-admin.corp.google.com/',
+    },
+    function(stored) {
+      const gaSite = stored.ga_site;
 
-        chrome.storage.local.get(project, function(result) {
-          const alarm = result[project];
+      chrome.storage.local.get(project, function(result) {
+        const alarm = result[project];
 
-          chrome.tabs.query(
-              {
-                url: gaSite + '*' + alarm.project_number + '*',
-              },
-              function(tabs) {
-                // should be only one of these found
-                if ((tabs.length > 0) && (typeof callback === 'function')) {
-                  console.log('tab', tabs[0]);
-                  callback(tabs[0]);
-                }
+        chrome.tabs.query(
+          {
+            url: gaSite + '*' + alarm.project_number + '*',
+          },
+          function(tabs) {
+            // should be only one of these found
+            if ((tabs.length > 0) && (typeof callback === 'function')) {
+              console.log('tab', tabs[0]);
+              callback(tabs[0]);
+            }
 
-                // discard the alarm if no matching GA page found
-                if (tabs.length == 0) {
-                  clearAlarm(project);
-                }
-              });
-        });
-      });
+            // discard the alarm if no matching GA page found
+            if (tabs.length == 0) {
+              clearAlarm(project);
+            }
+          }); // end chrome.tabs.query
+        }
+      ); // end chrome.storage.local.get
+    }
+  ); // end chrome.storage.sync.get
 }
 
 /**
@@ -89,31 +91,32 @@ function checkToken(project) {
 
     // read the auto_reload value from synced storage
     chrome.storage.sync.get(
-        {
-          auto_reload: false,  // default to false
-        },
-        function(stored) {
+      {
+        auto_reload: false,  // default to false
+      },
+      function(stored) {
 
-          // remainingSeconds is getting low
-          if (remainingSeconds > 0) {
-            if (!stored.auto_reload) sendNotice(project, remainingSeconds);
-            return;
-          }
+        // remainingSeconds is getting low
+        if (remainingSeconds > 0) {
+          if (!stored.auto_reload) sendNotice(project, remainingSeconds);
+          return;
+        }
 
-          // gave up after the token is expired for more than 2 minites
-          if (remainingSeconds > -120) {
-            return;
-          }
+        // gave up after the token is expired for more than 2 minites
+        if (remainingSeconds > -120) {
+          return;
+        }
 
-          // token expired
-          if (stored.auto_reload) {
-            refreshGA(project);
-            sendNotice(
-                project, remainingSeconds,
-                'Token expred, Google Admin page is refreshed');
-          }
-        });
-  });
+        // token expired
+        if (stored.auto_reload) {
+          refreshGA(project);
+          sendNotice(
+              project, remainingSeconds,
+              'Token expred, Google Admin page is refreshed');
+        }
+      }
+    ); // end chrome.storage.sync.get
+  }); // end chrome.storage.local.get
 }
 
 /**
@@ -227,35 +230,37 @@ function clearAllAlarms() {
  */
 function refreshToken(project, newtoken) {
   chrome.storage.sync.get(
-      {
-        pantheon_site: 'https://pantheon.corp.google.com/',
-      },
-      function(stored) {
+    {
+      pantheon_site: 'https://pantheon.corp.google.com/',
+    },
+    function(stored) {
 
-        const pantheon_site = stored.pantheon_site;
+      const pantheon_site = stored.pantheon_site;
 
-        // loop through all tabs to check existing pantheon pages
-        chrome.tabs.query(
-            {
-              url: pantheon_site + '*' + project + '*',
-              // currentWindow: true
-            },
-            function(tabs) {
-              tabs.forEach(function(tab, index) {
-                const tab_match = tab.url.match(/token=([^&/]+)/i);
+      // loop through all tabs to check existing pantheon pages
+      chrome.tabs.query(
+        {
+          url: pantheon_site + '*' + project + '*',
+          // currentWindow: true
+        },
+        function(tabs) {
+          tabs.forEach(function(tab, index) {
+            const tab_match = tab.url.match(/token=([^&/]+)/i);
 
-                if (tab_match) {
-                  const tab_token = tab_match[1];
+            if (tab_match) {
+              const tab_token = tab_match[1];
 
-                  if (tab_token != newtoken) {
-                    // reload the tab with new token
-                    chrome.tabs.update(
-                        tab.id, {url: tab.url.replace(tab_token, newtoken)});
-                  }
-                }
-              });
-            });
-      });
+              if (tab_token != newtoken) {
+                // reload the tab with new token
+                chrome.tabs.update(
+                    tab.id, {url: tab.url.replace(tab_token, newtoken)});
+              }
+            } 
+          }); // end forEach
+        }
+      ); // end chrome.tabs.query
+    }
+  ); // end chrome.storage.sync.get
 }
 
 // capture the alarm from the source page and save it in local storage
