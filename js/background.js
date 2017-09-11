@@ -3,15 +3,12 @@
  * @author nmiu@google.com (Neil Miao)
  */
 
-/**
- * Token expired after 30 minutes
- */
-const timeToExpire = 1800;  // 30 minites
+// token expiry in mins
+const timeToExpire = 30;
 
-/**
- * Notify when token is going to expired in 6 minutes
- */
-const timeToNotify = 360;  // 6 minites
+
+// alarm warning in mins
+const timeToNotify = 2;
 
 /**
  * How many seconds left until token expired
@@ -20,7 +17,7 @@ const timeToNotify = 360;  // 6 minites
  */
 function secondsLeft(time) {
   const now = Date.now();
-  const seconds = timeToExpire - ((now - time) / 1000);
+  const seconds = (timeToExpire * 60) - ((now - time) / 1000);
   return Math.round(seconds);
 }
 
@@ -87,7 +84,7 @@ function checkToken(project) {
     let remainingSeconds = secondsLeft(alarm.time);
 
     // do nothing when timeToNotify is not reached yet
-    if (remainingSeconds > timeToNotify) return;
+    if (remainingSeconds > timeToNotify * 60) return;
 
     // read the auto_reload value from synced storage
     chrome.storage.sync.get(
@@ -152,7 +149,7 @@ function sendNotice(project, remainingSeconds, message) {
   chrome.notifications.create(project, opt);
   setTimeout(function() {
     chrome.notifications.clear(project, function(wasCleared) {});
-  }, 5000);
+  }, 10000);
 }
 
 /**
@@ -190,16 +187,19 @@ function createAlarm(payload) {
   const token = payload.token;
 
   chrome.storage.local.set(
-      {
-        [name]: payload  // [] is used so name like 'nmiu-play' can be
-                         // evaluated as property
-      },
-      function() {
-        // reload matched pantheon tabs
-        refreshToken(name, token);
-        // start the alarm
-        chrome.alarms.create(name, {delayInMinutes: 0.1, periodInMinutes: 2});
-      });
+    {
+      [name]: payload  // [] is used so name like 'nmiu-play' can be
+                       // evaluated as property
+    },
+    function() {
+      // reload matched pantheon tabs
+      refreshToken(name, token);
+      // start the alarm
+      chrome.alarms.create(name,
+        {delayInMinutes: 1, periodInMinutes: 2}
+      );
+    }
+  ); // end chrome.storage.local.set
 }
 
 /**
@@ -255,7 +255,7 @@ function refreshToken(project, newtoken) {
                 chrome.tabs.update(
                     tab.id, {url: tab.url.replace(tab_token, newtoken)});
               }
-            } 
+            }
           }); // end forEach
         }
       ); // end chrome.tabs.query
@@ -273,8 +273,18 @@ chrome.runtime.onMessage.addListener(function(req) {
 });
 
 // when an alarm has elapsed
-chrome.alarms.onAlarm.addListener(function(alarm_msg) {
-  console.log('Got an alarm!', alarm_msg);
-  checkToken(alarm_msg.name);
-  findGATab(alarm_msg.name);
+chrome.alarms.onAlarm.addListener(function(msg) {
+  console.log('Got an alarm!', msg);
+  checkToken(msg.name);
+  findGATab(msg.name); // call this to clear the expired alarms
+});
+
+chrome.notifications.onClicked.addListener(function(project) {
+  console.log('Notification: '+project+' is clicked!');
+  openGA(project);
+});
+
+chrome.notifications.onButtonClicked.addListener(function(project, buttonIndex) {
+  console.log('Notification button: '+project+' '+buttonIndex+' is clicked!');
+  refreshGA(project);
 });
