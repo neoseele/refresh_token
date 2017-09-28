@@ -1,3 +1,6 @@
+
+const metastore_inspector = 'https://metastore-inspector.corp.google.com/home/scan'
+
 /**
  * find the dom node by selector and inner text
  * @param {string} nodeSelector:
@@ -15,6 +18,32 @@ function getDomWithText(nodeSelector, innerText, dom = document) {
       return node;
     }
   }
+}
+
+function parseQueryString(url) {
+  const urlParams = {};
+  url.replace(
+    new RegExp("([^?=&]+)(=([^&]*))?", "g"),
+    function($0, $1, $2, $3) {
+      urlParams[$1] = $3;
+    }
+  );
+
+  return urlParams;
+}
+
+function addMetastoreLink(projectNumber, parentElement) {
+  const result = parseQueryString(location.search);
+  const jt = 'Unify-Id'
+
+  if (result['jt'] == '1') jt = 'Bug-Id';
+
+  const a = document.createElement('a');
+  const linkText = document.createTextNode(' (Metastore Inspector)');
+  a.appendChild(linkText);
+  a.href = metastore_inspector+'?query=c:'+projectNumber+'&access_reason='+result['jv']+'&justification_type='+jt;
+  a.target = '_blank';
+  parentElement.appendChild(a);
 }
 
 /**
@@ -81,6 +110,10 @@ document.addEventListener('DOMNodeInserted', function() {
 
   if (token != match[1]) {
     token = match[1];
+
+    // add metastore-inspector link
+    addMetastoreLink(projectNumber, links[0].parentElement.parentElement);
+
     console.log('...found token for project number', projectNumber);
     console.log('...token', token);
 
