@@ -23,7 +23,7 @@ function showAlarms() {
     btnClear.style.display = 'inline-block';
     btnClear.title = 'clear all tokens';
   } else {
-    var li = document.createElement('li');
+    let li = document.createElement('li');
     li.className = 'mdl-list__item';
     li.innerText = 'No active tokens found';
     ulAlarms.appendChild(li);
@@ -32,6 +32,7 @@ function showAlarms() {
 
   for (let i = 0; i < alarms.length; ++i) {
     let alarm = alarms[i];
+    const projectName = alarm.projectName;
 
     let li = document.createElement('li');
     li.className = 'mdl-list__item mdl-list__item--two-line';
@@ -44,25 +45,19 @@ function showAlarms() {
     icon.innerText = 'alarm';
 
     let spanAlarm = document.createElement('span');
-    spanAlarm.innerText = alarm.project;
+    spanAlarm.innerText = alarm.projectName;
     spanAlarm.className = 'alarm';
-    spanAlarm.onclick = (function() {
-      const project = alarm.project;
-      return function() {
-        bgPage.openGA(project);
-      };
-    })();
+    spanAlarm.onclick = function() {
+      bgPage.openGA(projectName);
+      window.close();
+    };
 
     let spanAlarmDetail = document.createElement('span');
     spanAlarmDetail.className = 'mdl-list__item-sub-title';
-    spanAlarmDetail.innerText = alarm.project;
+    spanAlarmDetail.innerText = alarm.projectName;
 
     let spanSecondaryContent = document.createElement('span');
     spanSecondaryContent.className = 'mdl-list__item-secondary-content';
-
-    // const spanActions = document.createElement('span');
-    // spanActions.className = 'mdl-list__item-secondary-info';
-    // spanActions.innerText = 'Action';
 
     // refresh button
     let button0 = document.createElement('button');
@@ -74,13 +69,10 @@ function showAlarms() {
     button0.innerHTML = '<i class="material-icons">autorenew</i>';
     button0.className = 'mdl-button mdl-js-button mdl-button--icon';
     button0.title = 'renew this token';
-    button0.onclick = (function() {
-      const project = alarm.project;
-      return function() {
-        bgPage.refreshGA(project); // better to send message?
-        window.close();
-      };
-    })();
+    button0.onclick = function() {
+      bgPage.refreshGA(projectName);
+      window.close();
+    };
 
     // disable refresh button when the token is already expired
     if (secondsLeft < 0) {
@@ -93,14 +85,11 @@ function showAlarms() {
     button1.id = 'button1' + i;
     button1.innerHTML = '<i class="material-icons">delete</i>';
     button1.className = 'mdl-button mdl-js-button mdl-button--icon';
-    button1.title = 'remove this token';
-    button1.onclick = (function() {
-      const project = alarm.project;
-      return function() {
-        bgPage.clearAlarm(project);
-        window.close();
-      };
-    })();
+    button1.title = 'discard this token';
+    button1.onclick = function() {
+      bgPage.clearAlarm(projectName);
+      window.close();
+    };
 
     spanPrimaryContent.appendChild(icon);
     spanPrimaryContent.appendChild(spanAlarm);
@@ -123,7 +112,7 @@ function showAlarms() {
 function clear() {
   for (let i = 0; i < alarms.length; ++i) {
     if (document.getElementById('check' + i).checked) {
-      bgPage.clearAlarm(alarms[i].project);
+      bgPage.clearAlarm(alarms[i].name);
     }
   }
   window.close();
@@ -143,9 +132,9 @@ function clearAll() {
 window.onload = function() {
   document.getElementById('clear').onclick = clearAll;
 
-  chrome.storage.local.get(null, function(result) {
+  chrome.storage.local.get(null, function(storageItems) {
     // load the existing alarm payloads
-    alarms = Object.values(result);
+    alarms = Object.values(storageItems);
     showAlarms();
   });
 };

@@ -1,15 +1,15 @@
-
-const metastore_inspector = 'https://metastore-inspector.corp.google.com/home/scan'
+// metastore inspector url
+const metastore_inspector = 'https://metastore-inspector.corp.google.com/home/scan';
 
 /**
  * find the dom node by selector and inner text
- * @param {string} nodeSelector:
+ * @param {string} elementType: the element type (tag)
  * @param {string} innerText: the stuff between the tags
  * @param {object=} dom: object to search from
  * @return {object} return the found node
  */
-function getDomWithText(nodeSelector, innerText, dom = document) {
-  const nodes = dom.querySelectorAll(nodeSelector);
+function getDomWithText(elementType, innerText, dom = document) {
+  const nodes = dom.querySelectorAll(elementType);
   let node = null;
 
   for (let i = 0; i < nodes.length; i++) {
@@ -20,6 +20,11 @@ function getDomWithText(nodeSelector, innerText, dom = document) {
   }
 }
 
+/**
+ * find parameters from a url
+ * @param {string} url:
+ * @return {object} return the parameters as a hash map
+ */
 function parseQueryString(url) {
   const urlParams = {};
   url.replace(
@@ -32,9 +37,14 @@ function parseQueryString(url) {
   return urlParams;
 }
 
-function addMetastoreLink(projectNumber, parentElement) {
+/**
+ * add a metastore link to a DOM element
+ * @param {string} projectNumber:
+ * @param {object} domElement: the DOM element
+ */
+function addMetastoreLink(projectNumber, domElement) {
   const result = parseQueryString(location.search);
-  const jt = 'Unify-Id'
+  let jt = 'Unify-Id';
 
   if (result['jt'] == '1') jt = 'Bug-Id';
 
@@ -43,36 +53,35 @@ function addMetastoreLink(projectNumber, parentElement) {
   a.appendChild(linkText);
   a.href = metastore_inspector+'?query=c:'+projectNumber+'%20t:CHNAGEME&access_reason='+result['jv']+'&justification_type='+jt;
   a.target = '_blank';
-  parentElement.appendChild(a);
+  domElement.appendChild(a);
 }
 
-/**
- * search text for finding the project span
- */
+// search text for finding the project span
 const searchTextForProject = 'Cloud Project > Cloud Project Inspection';
 
-/**
- * track if the project inspection span is clicked or not
- */
+// track if the project inspection span is clicked or not
 let clicked = false;
 
-/**
- * track the project token
- */
-let token = "";
+// track the project token
+let token = '';
 
-document.addEventListener('DOMNodeInserted', function() {
-  /**
-   * segments should looks like
-   * ["", "v2", "overview", "cloud-project", "<project number>"]
-   */
+document.addEventListener('DOMNodeInserted', () => {
+  // triggered from
+  // https://google-admin.corp.google.com/v2/overview/cloud-project/10288399232?jt=8&jv=1238384
+  // direct link is
+  // https://google-admin.corp.google.com/v2/cloud-project-inspection-only/cloud-project/10288399232?jt=8&jv=1238384
+
+  // parse URL for information
   const segments = window.location.pathname.split('/');
+  // `segments` should looks like ["", "v2", "overview", "cloud-project",
+  // "<project number>"] OR ["", "v2", "cloud-project-inspection-only",
+  // "cloud-project",
+  // "<project number>"]
 
-  /**
-   * return if the segments looks like this:
-   * ["", "v2", "search". "<search string>"]
-   */
-  if (segments[2] != "overview") return;
+  if (segments[2] != 'overview' &&
+      segments[2] != 'cloud-project-inspection-only') {
+    return;
+  }
 
   const projectNumber = segments[4];
   const span = getDomWithText('span', projectNumber);
@@ -81,52 +90,47 @@ document.addEventListener('DOMNodeInserted', function() {
   if (!span) return;
 
   // find the project id
-  const projectIdDiv = span.parentElement.parentElement.nextSibling;
-  const projectId = projectIdDiv.getElementsByTagName('span')[0].innerText;
-  console.log('...found project id', projectId);
+  const projectNameDiv = span.parentElement.parentElement.nextSibling;
+  const projectName = projectNameDiv.getElementsByTagName('span')[0].innerText;
 
   const projectSpan =
       getDomWithText('span', searchTextForProject.toLowerCase());
   if (!projectSpan) return;
 
   // click the span to trigger the AJAX calls
-  if (!clicked) {
+  if (segments[2] == 'overview' && !clicked) {
     projectSpan.click();
     clicked = true;
-    console.log('...span clicked');
     return;
   }
 
-  const div = document.querySelectorAll(
-      '[data-title="' + searchTextForProject + '"]')[0];
+  const div = document.querySelector(
+      '[data-title="' + searchTextForProject + '"]');
 
-  const links = div.querySelectorAll('a');
-  // return if the link hasn't yet been inserted
-  if (!links[0]) return;
+  const link = div.querySelector('a');
 
-  const match = links[0].search.match(/token=([^&]+)/);
-  // return if no token found
-  if (!match) return;
+  if (!link) return; // div hasn't been added yet. try again on next event
+
+  const match = link.search.match(/token=([^&]+)/);
+
+  if (!match) return; // link hasn't been added yet. try again on next event
 
   if (token != match[1]) {
     token = match[1];
 
     // add metastore-inspector link
-    addMetastoreLink(projectNumber, links[0].parentElement.parentElement);
+    addMetastoreLink(projectNumber, link.parentElement.parentElement);
 
-    console.log('...found token for project number', projectNumber);
-    console.log('...token', token);
+    console.log('projectName', projectName);
 
-    chrome.runtime.sendMessage({
-      action: 'create_alarm',
-      payload: {
-        'ga_link': window.location.href,
-        'token_link': links[0].href,
-        'project': projectId,
-        'project_number': projectNumber,
-        'token': token,
-        'time': Date.now(),
-      }
-    });
+    const payload = {
+      'gaLink': window.location.href,
+      'tokenLink': link.href,
+      'projectName': projectName,
+      'projectNumber': projectNumber,
+      'token': token,
+      'time': Date.now()
+    };
+    chrome.runtime.sendMessage({action: 'create_alarm', payload: payload});
   }
 });
