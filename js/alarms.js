@@ -41,7 +41,7 @@ function addMetastoreLink(projectNumber, parentElement) {
   const a = document.createElement('a');
   const linkText = document.createTextNode(' (Metastore Inspector)');
   a.appendChild(linkText);
-  a.href = metastore_inspector+'?query=c:'+projectNumber+'&access_reason='+result['jv']+'&justification_type='+jt;
+  a.href = metastore_inspector+'?query=c:'+projectNumber+'%20t:CHNAGEME&access_reason='+result['jv']+'&justification_type='+jt;
   a.target = '_blank';
   parentElement.appendChild(a);
 }
