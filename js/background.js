@@ -99,7 +99,7 @@ function sendNotice(projectName, remainingSeconds, message) {
     buttons: [{
       title: 'Refresh Now',
     }],
-    iconUrl: 'notice.png',
+    iconUrl: 'image/notice.png',
   };
 
   // override things when extra message is passed in
