@@ -1,5 +1,7 @@
 // metastore inspector url
 const metastore_inspector = 'https://metastore-inspector.corp.google.com/home/scan';
+// search text for finding the project span
+const searchTextForProject = 'Cloud Project > Cloud Project Inspection';
 
 /**
  * find the dom node by selector and inner text
@@ -15,6 +17,22 @@ function getDomWithText(elementType, innerText, dom = document) {
   for (let i = 0; i < nodes.length; i++) {
     node = nodes[i];
     if (node.innerText.toLowerCase() == innerText) {
+      return node;
+    }
+  }
+}
+
+/**
+ * find the span which contains project inspection details
+ * @return {object} return the found span
+ */
+function findProjectSpan() {
+  const nodes = document.querySelectorAll("span");
+  let node = null;
+
+  for (let i = 0; i < nodes.length; i++) {
+    node = nodes[i]
+    if (node.innerText.includes(searchTextForProject) == true) {
       return node;
     }
   }
@@ -56,9 +74,6 @@ function addMetastoreLink(projectNumber, domElement) {
   domElement.appendChild(a);
 }
 
-// search text for finding the project span
-const searchTextForProject = 'Cloud Project > Cloud Project Inspection';
-
 // track if the project inspection span is clicked or not
 let clicked = false;
 
@@ -93,8 +108,9 @@ document.addEventListener('DOMNodeInserted', () => {
   const projectNameDiv = span.parentElement.parentElement.nextSibling;
   const projectName = projectNameDiv.getElementsByTagName('span')[0].innerText;
 
-  const projectSpan =
-      getDomWithText('span', searchTextForProject.toLowerCase());
+  // find the span that contains the project inspection details
+  const projectSpan = findProjectSpan();
+  // console.log(projectSpan);
   if (!projectSpan) return;
 
   // click the span to trigger the AJAX calls
